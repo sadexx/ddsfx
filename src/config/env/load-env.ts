@@ -1,0 +1,47 @@
+import { validateAndTransformEnv } from 'src/config/env';
+import { EnvConfig, RawEnvConfig } from 'src/config/common/types';
+import { registerAs } from '@nestjs/config';
+import { ENV_CONFIG_TOKEN } from 'src/config/common/constants';
+
+export const loadEnv = registerAs(ENV_CONFIG_TOKEN, (): EnvConfig => {
+  const rawEnv: RawEnvConfig = {
+    APP_PORT: process.env['APP_PORT'],
+    APP_URL: process.env['APP_URL'],
+    INTERNAL_API_KEY: process.env['INTERNAL_API_KEY'],
+    INTERNAL_API_SECRET: process.env['INTERNAL_API_SECRET'],
+    DEFAULT_USER_AGENT: process.env['DEFAULT_USER_AGENT'],
+    NODE_ENV: process.env['NODE_ENV'],
+    FIRST_LAUNCH: process.env['FIRST_LAUNCH'],
+    SEND_LOG_TO_LOKI: process.env['SEND_LOG_TO_LOKI'],
+    COOKIE_SECURE_MODE: process.env['COOKIE_SECURE_MODE'],
+    JWT_ACCESS_TOKEN_SECRET: process.env['JWT_ACCESS_TOKEN_SECRET'],
+    JWT_ACCESS_TOKEN_EXPIRATION_TIME: process.env['JWT_ACCESS_TOKEN_EXPIRATION_TIME'],
+    OPAQUE_REFRESH_TOKEN_SECRET: process.env['OPAQUE_REFRESH_TOKEN_SECRET'],
+    OPAQUE_REFRESH_TOKEN_EXPIRATION_TIME: process.env['OPAQUE_REFRESH_TOKEN_EXPIRATION_TIME'],
+    OPAQUE_REGISTRATION_TOKEN_SECRET: process.env['OPAQUE_REGISTRATION_TOKEN_SECRET'],
+    OPAQUE_REGISTRATION_TOKEN_EXPIRATION_TIME: process.env['OPAQUE_REGISTRATION_TOKEN_EXPIRATION_TIME'],
+    OPAQUE_OTP_VERIFICATION_TOKEN_SECRET: process.env['OPAQUE_OTP_VERIFICATION_TOKEN_SECRET'],
+    OPAQUE_OTP_VERIFICATION_TOKEN_EXPIRATION_TIME: process.env['OPAQUE_OTP_VERIFICATION_TOKEN_EXPIRATION_TIME'],
+    BCRYPT_SALT_ROUNDS: process.env['BCRYPT_SALT_ROUNDS'],
+    POSTGRES_HOST: process.env['POSTGRES_HOST'],
+    POSTGRES_PORT: process.env['POSTGRES_PORT'],
+    POSTGRES_USER: process.env['POSTGRES_USER'],
+    POSTGRES_DB: process.env['POSTGRES_DB'],
+    POSTGRES_PASSWORD: process.env['POSTGRES_PASSWORD'],
+    POSTGRES_EXTERNAL_DB_URL: process.env['POSTGRES_EXTERNAL_DB_URL'],
+    REDIS_HOST: process.env['REDIS_HOST'],
+    REDIS_PORT: process.env['REDIS_PORT'],
+    REDIS_TTL_MINUTES: process.env['REDIS_TTL_MINUTES'],
+    OPENSEARCH_HOST: process.env['OPENSEARCH_HOST'],
+    OPENSEARCH_USERNAME: process.env['OPENSEARCH_USERNAME'],
+    OPENSEARCH_PASSWORD: process.env['OPENSEARCH_PASSWORD'],
+    AWS_ACCOUNT_ID: process.env['AWS_ACCOUNT_ID'],
+    AWS_REGION: process.env['AWS_REGION'],
+    AWS_ACCESS_KEY_ID: process.env['AWS_ACCESS_KEY_ID'],
+    AWS_SECRET_ACCESS_KEY: process.env['AWS_SECRET_ACCESS_KEY'],
+    APPLE_CLIENT_ID: process.env['APPLE_CLIENT_ID'],
+    GOOGLE_OAUTH2_CLIENT_ID: process.env['GOOGLE_OAUTH2_CLIENT_ID'],
+  };
+
+  return validateAndTransformEnv(rawEnv);
+});

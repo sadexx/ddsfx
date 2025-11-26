@@ -1,0 +1,8 @@
+services:
+  freya-deploy:
+    image: freya-deploy:latest
+    platform: linux/x86_64
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production

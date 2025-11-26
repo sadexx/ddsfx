@@ -1,0 +1,17 @@
+{
+  "applinks": {
+    "details": [
+      {
+        "appIDs": [
+          "appID.com.project-name"
+        ],
+        "components": [
+          {
+            "/": "*",
+            "comment": "Matches any URLs"
+          }
+        ]
+      }
+    ]
+  }
+}

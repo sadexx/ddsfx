@@ -1,0 +1,67 @@
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Setting } from 'src/modules/settings/entities';
+import { Repository } from 'typeorm';
+import { UpdateSettingDto } from 'src/modules/settings/common/dto';
+import { RedisService } from 'src/libs/redis/services';
+import { LokiLogger } from 'src/libs/logger';
+import { NUMBER_OF_MINUTES_IN_DAY, NUMBER_OF_SECONDS_IN_MINUTE } from 'src/common/constants';
+import { IMessageOutput } from 'src/common/outputs';
+import { SettingsQuery, TSettings } from 'src/modules/settings/common/types';
+import { findManyTyped } from 'src/common/utils/find-many-typed';
+
+@Injectable()
+export class SettingsService {
+  private readonly lokiLogger = new LokiLogger(SettingsService.name);
+  private readonly CACHE_KEY: string = 'global-settings';
+
+  constructor(
+    @InjectRepository(Setting)
+    private readonly settingsRepository: Repository<Setting>,
+    private readonly redisService: RedisService,
+  ) {}
+
+  public async seedSettingsToDatabase(): Promise<void> {
+    const ratesCount = await this.settingsRepository.count();
+
+    if (ratesCount === 0) {
+      const seedData: Omit<Setting, 'id' | 'creationDate' | 'updatingDate'> = {
+        description: 'Default description',
+        fastSearchMaxRequestsPerHour: 100,
+      };
+
+      const setting = this.settingsRepository.create(seedData);
+
+      await this.settingsRepository.save(setting);
+      this.lokiLogger.log(`Seeded Settings table, added record`);
+    }
+  }
+
+  public async getSettings(): Promise<TSettings> {
+    const CACHE_TTL = NUMBER_OF_MINUTES_IN_DAY * NUMBER_OF_SECONDS_IN_MINUTE;
+    const cacheData = await this.redisService.getJson<TSettings>(this.CACHE_KEY);
+
+    if (cacheData) {
+      return cacheData;
+    }
+
+    const [settings] = await findManyTyped<TSettings[]>(this.settingsRepository, {
+      select: SettingsQuery.select,
+    });
+
+    if (!settings) {
+      throw new NotFoundException('Settings not found in the database.');
+    }
+
+    await this.redisService.setJson(this.CACHE_KEY, settings, CACHE_TTL);
+
+    return settings;
+  }
+
+  public async updateSetting(dto: UpdateSettingDto): Promise<IMessageOutput> {
+    await this.settingsRepository.updateAll(dto);
+    await this.redisService.del(this.CACHE_KEY);
+
+    return { message: 'Settings updated successfully.' };
+  }
+}

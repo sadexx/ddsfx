@@ -1,0 +1,329 @@
+x-logging: &default-logging
+  driver: json-file
+  options:
+    max-size: '10m'
+    max-file: '3'
+
+services:
+  freya:
+    container_name: freya
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: development
+    restart: unless-stopped
+    develop:
+      watch:
+        - action: sync
+          path: ./src
+          target: /usr/src/app/src
+          ignore:
+            - node_modules/
+        - action: rebuild
+          path: package.json
+        - action: rebuild
+          path: .env
+    env_file:
+      - .env
+    ports:
+      - 3000:3000
+    depends_on:
+      opensearch:
+        condition: service_healthy
+      postgres:
+        condition: service_started
+      redis:
+        condition: service_started
+    networks:
+      default:
+        aliases:
+          - freya
+    healthcheck:
+      test: ['CMD', 'wget', '--spider', 'http://freya:3000/v1/health-check']
+      start_period: 5m
+      start_interval: 5s
+      interval: 1440m
+      timeout: 10s
+      retries: 3
+    logging: *default-logging
+
+  postgres:
+    container_name: postgres-freya
+    image: postgres:18.0-alpine3.22
+    restart: unless-stopped
+    env_file:
+      - path: ./docker/env/postgres.env
+        required: true
+    ports:
+      - 5432:5432
+    volumes:
+      - postgres-data-freya:/var/lib/postgresql/data
+    networks:
+      default:
+        aliases:
+          - postgres
+    logging: *default-logging
+
+  redis:
+    container_name: redis-freya
+    image: redis:8.2-alpine3.22
+    restart: unless-stopped
+    volumes:
+      - redis-data-freya:/data
+    ports:
+      - 6379:6379
+    networks:
+      default:
+        aliases:
+          - redis
+    logging: *default-logging
+
+  opensearch:
+    container_name: opensearch-freya
+    image: opensearchproject/opensearch:3
+    command: >
+      bash -c '
+      if [ ! -d "/usr/share/opensearch/plugins/prometheus-exporter" ]; then
+        /usr/share/opensearch/bin/opensearch-plugin install -b https://github.com/opensearch-project/opensearch-prometheus-exporter/releases/download/3.2.0.0/prometheus-exporter-3.2.0.0.zip
+      fi &&
+      /usr/share/opensearch/opensearch-docker-entrypoint.sh
+      '
+    restart: unless-stopped
+    env_file:
+      - path: ./docker/env/opensearch.env
+        required: true
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+      nofile:
+        soft: 65536
+        hard: 65536
+    volumes:
+      - opensearch-data-freya:/usr/share/opensearch/data
+    ports:
+      - 9200:9200
+      - 9600:9600
+    networks:
+      default:
+        aliases:
+          - opensearch
+    healthcheck:
+      test:
+        [
+          'CMD-SHELL',
+          'curl -f http://localhost:9200/_cluster/health -u ${OPENSEARCH_USERNAME}:${OPENSEARCH_PASSWORD} || exit 1',
+        ]
+      start_period: 5m
+      start_interval: 5s
+      interval: 1440m
+      timeout: 10s
+      retries: 3
+    logging: *default-logging
+
+  pgadmin:
+    container_name: pgadmin-freya
+    image: dpage/pgadmin4:9.8
+    restart: unless-stopped
+    env_file:
+      - path: ./docker/env/pgadmin.env
+        required: true
+    volumes:
+      - pgadmin-data-freya:/var/lib/pgadmin
+    ports:
+      - 5050:80
+    networks:
+      default:
+        aliases:
+          - pgadmin
+    logging: *default-logging
+
+  redis-insight:
+    container_name: redis-insight-freya
+    image: redis/redisinsight:2.70
+    restart: unless-stopped
+    env_file:
+      - path: ./docker/env/redis-insight.env
+        required: true
+    user: root
+    volumes:
+      - redis-insight-data-freya:/data
+    ports:
+      - 5540:5540
+    networks:
+      default:
+        aliases:
+          - redis-insight
+    logging: *default-logging
+
+  opensearch-dashboards:
+    container_name: opensearch-dashboards-freya
+    image: opensearchproject/opensearch-dashboards:3
+    restart: unless-stopped
+    env_file:
+      - path: ./docker/env/opensearch-dashboards.env
+        required: true
+    volumes:
+      - opensearch-dashboards-data-freya:/usr/share/opensearch-dashboards/data
+    ports:
+      - 5601:5601
+    depends_on:
+      opensearch:
+        condition: service_healthy
+    networks:
+      default:
+        aliases:
+          - opensearch-dashboards
+    logging: *default-logging
+
+  grafana:
+    container_name: grafana-freya
+    image: grafana/grafana-enterprise:12.1.0
+    restart: unless-stopped
+    env_file:
+      - path: ./docker/env/grafana.env
+        required: true
+    user: '0'
+    volumes:
+      - grafana-data-freya:/var/lib/grafana
+    ports:
+      - 3450:3450
+    networks:
+      default:
+        aliases:
+          - grafana
+    logging: *default-logging
+
+  prometheus:
+    container_name: prometheus-freya
+    image: prom/prometheus:v3.6.0
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --web.external-url=http://localhost/prometheus-app
+      - --web.route-prefix=/
+    restart: unless-stopped
+    volumes:
+      - ./docker/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./docker/secrets/opensearch_username:/etc/prometheus/secrets/opensearch_username:ro
+      - ./docker/secrets/opensearch_password:/etc/prometheus/secrets/opensearch_password:ro
+      - prometheus-data-freya:/prometheus
+    ports:
+      - 9090:9090
+    networks:
+      default:
+        aliases:
+          - prometheus
+    logging: *default-logging
+
+  loki:
+    container_name: loki-freya
+    image: grafana/loki:3.5
+    command: -config.file=/etc/loki/local-config.yml
+    restart: unless-stopped
+    volumes:
+      - ./docker/loki-config.yml:/etc/loki/local-config.yml:ro
+      - loki-data-freya:/loki
+    ports:
+      - 3100:3100
+    networks:
+      default:
+        aliases:
+          - loki
+    logging: *default-logging
+
+  node-exporter:
+    container_name: node-exporter-freya
+    image: prom/node-exporter:v1.9.1
+    command:
+      - --path.procfs=/host/proc
+      - --path.sysfs=/host/sys
+      - --collector.filesystem.ignored-mount-points
+      - ^/(sys|proc|dev|host|etc)($|/)
+    restart: unless-stopped
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    ports:
+      - 9100:9100
+    networks:
+      default:
+        aliases:
+          - node-exporter
+    logging: *default-logging
+
+  postgres-exporter:
+    container_name: postgres-exporter-freya
+    image: prometheuscommunity/postgres-exporter:v0.17.1
+    restart: unless-stopped
+    env_file:
+      - path: ./docker/env/postgres-exporter.env
+        required: true
+    ports:
+      - 9187:9187
+    depends_on:
+      - postgres
+    networks:
+      default:
+        aliases:
+          - postgres-exporter
+    logging: *default-logging
+
+  redis-exporter:
+    container_name: redis-exporter-freya
+    image: oliver006/redis_exporter:v1.77.0-alpine
+    command:
+      - --redis.addr=redis-freya:6379
+    restart: unless-stopped
+    ports:
+      - 9121:9121
+    depends_on:
+      - redis
+    networks:
+      default:
+        aliases:
+          - redis-exporter
+    logging: *default-logging
+
+  nginx:
+    container_name: nginx-freya
+    image: nginx:1.29-alpine3.22
+    restart: unless-stopped
+    volumes:
+      - ./docker/nginx.conf:/etc/nginx/nginx.conf:ro
+    ports:
+      - 80:80
+    depends_on:
+      - freya
+      - pgadmin
+      - redis-insight
+      - opensearch-dashboards
+      - grafana
+    networks:
+      default:
+        aliases:
+          - nginx
+    logging: *default-logging
+
+networks:
+  default:
+
+volumes:
+  postgres-data-freya:
+    driver: local
+  pgadmin-data-freya:
+    driver: local
+  redis-data-freya:
+    driver: local
+  redis-insight-data-freya:
+    driver: local
+  opensearch-data-freya:
+    driver: local
+  opensearch-dashboards-data-freya:
+    driver: local
+  grafana-data-freya:
+    driver: local
+  prometheus-data-freya:
+    driver: local
+  loki-data-freya:
+    driver: local
