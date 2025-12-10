@@ -14,6 +14,7 @@ export interface ICookieData {
   refreshToken?: string;
   registrationToken?: string;
   otpVerificationToken?: string;
+  sessionId?: string;
   availableRoles?: EUserRoleName[];
   registrationSteps?: IRegistrationStepsOutput[];
 }
@@ -38,7 +39,7 @@ export interface ICookieData {
  * - CSRF protection via `sameSite` attribute (strict in dev, none in prod for CORS)
  *
  * ## Token Lifecycles
- * - **Access Token (JWT):** Short-lived (1h), used for API authorization
+ * - **Access Token (JWT):** Short-lived (15m), used for API authorization
  * - **Refresh Token (Opaque):** Long-lived (7d), used to obtain new access tokens
  * - **Registration Token (Opaque):** Ephemeral (1h), multi-step registration flow state
  * - **Role Selection Token (Opaque):** Ephemeral (1h), post-OAuth role selection state
@@ -69,6 +70,7 @@ export interface ICookieData {
  *   return {
  *     accessToken: "...",   // New session tokens
  *     refreshToken: "..."
+ *     sessionId: "..."
  *   };
  * }
  * ```
@@ -194,6 +196,7 @@ export class SetCookiesInterceptor implements NestInterceptor {
           refreshToken: data?.refreshToken,
           registrationToken: data?.registrationToken,
           otpVerificationToken: data?.otpVerificationToken,
+          sessionId: data?.sessionId,
           availableRoles: data?.availableRoles,
           registrationSteps: data?.registrationSteps,
         };

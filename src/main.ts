@@ -6,6 +6,7 @@ import {
   fastifyCookieOptions,
   fastifyCorsOptions,
   fastifyListenOptions,
+  fastifyMultipartOptions,
   fastifyStaticOptions,
 } from 'src/config/fastify';
 import { ConfigService } from '@nestjs/config';
@@ -14,10 +15,10 @@ import { EnvConfig } from 'src/config/common/types';
 import { API_PREFIX, ENVIRONMENT, IS_LOCAL } from 'src/common/constants';
 import { FastifySerializerInterceptor } from 'src/common/interceptors';
 import { setupGracefulShutdown } from 'src/common/lifecycle';
-import fastifyStatic, { FastifyStaticOptions } from '@fastify/static';
-import type { FastifyPluginAsync } from 'fastify';
+import fastifyStatic from '@fastify/static';
 import { IoAdapter } from '@nestjs/platform-socket.io';
 import fastifyCookie from '@fastify/cookie';
+import fastifyMultipart from '@fastify/multipart';
 
 export let httpServer: NestFastifyApplication;
 
@@ -29,7 +30,10 @@ async function bootstrap(): Promise<void> {
   httpServer.enableShutdownHooks();
   httpServer.useGlobalInterceptors(new FastifySerializerInterceptor(httpServer.get(Reflector)));
   httpServer.setGlobalPrefix(API_PREFIX);
-  await httpServer.register(fastifyStatic as FastifyPluginAsync<FastifyStaticOptions>, fastifyStaticOptions());
+  await httpServer.register(fastifyStatic, fastifyStaticOptions());
+  await httpServer.register(fastifyMultipart, {
+    ...fastifyMultipartOptions(),
+  });
   await httpServer.register(fastifyCookie, fastifyCookieOptions());
 
   httpServer.useWebSocketAdapter(new IoAdapter(httpServer));

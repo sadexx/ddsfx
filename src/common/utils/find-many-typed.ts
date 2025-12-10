@@ -18,6 +18,23 @@ export async function findManyTyped<TReturnType>(
 }
 
 /**
+ * Finds multiple entities by given options and returns them as given type and total count.
+ *
+ * @param repository TypeORM Repository instance.
+ * @param options TypeORM FindManyOptions used to filter the query.
+ *
+ * @returns A tuple containing the typed entities (TReturnType) and the total count.
+ */
+export async function findManyAndCountTyped<TReturnType>(
+  repository: Repository<ObjectLiteral>,
+  options: FindManyOptions<ObjectLiteral>,
+): Promise<[TReturnType, number]> {
+  const [entities, count] = await repository.findAndCount(options);
+
+  return [entities as TReturnType, count];
+}
+
+/**
  * Finds multiple entities by given query builder and returns them as given type.
  *
  * @param queryBuilder typeorm SelectQueryBuilder instance
@@ -37,7 +54,7 @@ export async function findManyQueryBuilderTyped<TReturnType>(
  *
  * @param queryBuilder typeorm SelectQueryBuilder instance
  *
- * @returns found entities as given type (TReturnType)
+ * @returns A tuple containing the typed entities (TReturnType) and the total count.
  */
 export async function findManyAndCountQueryBuilderTyped<TReturnType>(
   queryBuilder: SelectQueryBuilder<ObjectLiteral>,

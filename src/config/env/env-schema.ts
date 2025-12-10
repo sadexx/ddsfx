@@ -173,6 +173,21 @@ const validationRules: TConfigRules<EnvConfig> = {
     validate: validators.optionalString,
     transform: transforms.string,
   },
+  AWS_S3_BUCKET_NAME: {
+    required: true,
+    validate: validators.requiredString,
+    transform: transforms.string,
+  },
+  AWS_CLOUDFRONT_DISTRIBUTION_ID: {
+    required: true,
+    validate: validators.requiredString,
+    transform: transforms.string,
+  },
+  AWS_CLOUDFRONT_DOMAIN_NAME: {
+    required: true,
+    validate: validators.requiredString,
+    transform: transforms.string,
+  },
   APPLE_CLIENT_ID: {
     required: true,
     validate: validators.requiredString,

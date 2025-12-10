@@ -3,10 +3,11 @@ import { Options as AjvOptions } from '@fastify/ajv-compiler';
 import { FastifyListenOptions, FastifyServerOptions } from 'fastify';
 import type { FastifyCorsOptions } from '@fastify/cors';
 import { formatFastifySchemaErrors } from 'src/config/fastify';
-import { IS_LOCAL, NUMBER_BYTES_IN_MEGABYTE } from 'src/common/constants';
+import { MAX_FILE_SIZE_LIMIT, IS_LOCAL, MAX_ALLOWED_FILES, NUMBER_BYTES_IN_MEGABYTE } from 'src/common/constants';
 import { FastifyStaticOptions } from '@fastify/static';
 import { join } from 'path';
 import { FastifyCookieOptions } from '@fastify/cookie';
+import { FastifyMultipartBaseOptions } from '@fastify/multipart';
 
 /**
  ** AJV Custom Options
@@ -89,15 +90,17 @@ const getFastifyServerOptions = (): Partial<FastifyServerOptions> => {
     exposeHeadRoutes: true,
     return503OnClosing: true,
     ajv: { customOptions: getAjvOptions() },
+    allowErrorHandlerOverride: false,
 
     //? === ROUTER OPTIONS ===
-    allowUnsafeRegex: false,
-    caseSensitive: true,
-    ignoreDuplicateSlashes: false,
-    ignoreTrailingSlash: false,
-    maxParamLength: 100,
-    useSemicolonDelimiter: false,
-    allowErrorHandlerOverride: false,
+    routerOptions: {
+      allowUnsafeRegex: false,
+      caseSensitive: true,
+      ignoreDuplicateSlashes: false,
+      ignoreTrailingSlash: false,
+      maxParamLength: 100,
+      useSemicolonDelimiter: false,
+    },
 
     //? === CUSTOM SCHEMA ERROR FORMATTING ===
     schemaErrorFormatter: formatFastifySchemaErrors,
@@ -184,6 +187,26 @@ export const fastifyCookieOptions = (): FastifyCookieOptions => {
       httpOnly: true,
       secure: 'auto',
       sameSite: 'lax',
+    },
+  };
+};
+
+/**
+ ** Create and configure Fastify Multipart Options
+ * @see link https://github.com/fastify/fastify-multipart?tab=readme-ov-file#usage
+ */
+
+export const fastifyMultipartOptions = (): FastifyMultipartBaseOptions => {
+  return {
+    throwFileSizeLimit: true,
+    limits: {
+      fieldNameSize: 0,
+      fieldSize: 0,
+      fields: 0,
+      fileSize: MAX_FILE_SIZE_LIMIT,
+      files: MAX_ALLOWED_FILES,
+      headerPairs: 20,
+      parts: 1000,
     },
   };
 };

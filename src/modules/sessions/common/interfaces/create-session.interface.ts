@@ -10,7 +10,6 @@ export interface ICreateSession {
   ipAddress: string;
   userAgent: string;
   platform: EPlatformType;
-  deviceId: string;
   pushNotificationToken: string | null;
   appVersion: string;
   osVersion: string;

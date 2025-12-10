@@ -1,0 +1,102 @@
+import { Injectable } from '@nestjs/common';
+import { Cemetery, GraveLocation } from 'src/modules/cemetery/entities';
+import { EntityManager, Repository } from 'typeorm';
+import { CreateGraveLocationDto, GetCemeteriesDto, UpdateGraveLocationDto } from 'src/modules/cemetery/common/dto';
+import { IGraveLocation } from 'src/modules/cemetery/common/interfaces';
+import {
+  TCreateDeceasedProfileCemetery,
+  TUpdateDeceasedProfile,
+  TUpdateDeceasedProfileCemetery,
+} from 'src/modules/deceased/common/types';
+import { StrictOmit } from 'src/common/types';
+import { TConstructGraveLocationDtoDeceased, TGetCemeteries } from 'src/modules/cemetery/common/types';
+import { InjectRepository } from '@nestjs/typeorm';
+import { CemeteryQueryOptionsService } from 'src/modules/cemetery/services';
+import { PaginationOutput } from 'src/common/outputs';
+import { findManyAndCountQueryBuilderTyped } from 'src/common/utils/find-many-typed';
+
+@Injectable()
+export class CemeteryService {
+  constructor(
+    @InjectRepository(Cemetery)
+    private readonly cemeteryRepository: Repository<Cemetery>,
+    private readonly cemeteryQueryOptionsService: CemeteryQueryOptionsService,
+  ) {}
+
+  public async getCemeteries(dto: GetCemeteriesDto): Promise<PaginationOutput<TGetCemeteries>> {
+    const queryBuilder = this.cemeteryRepository.createQueryBuilder('cemetery');
+    this.cemeteryQueryOptionsService.getCemeteriesOptions(queryBuilder, dto);
+    const [cemeteries, count] = await findManyAndCountQueryBuilderTyped<TGetCemeteries[]>(queryBuilder);
+
+    return { data: cemeteries, total: count, limit: dto.limit, offset: dto.offset };
+  }
+
+  public async createOrUpdateGraveLocation(
+    manager: EntityManager,
+    deceased: TUpdateDeceasedProfile,
+    cemetery: TUpdateDeceasedProfileCemetery | null,
+    dto?: UpdateGraveLocationDto,
+  ): Promise<void> {
+    if (!deceased.graveLocation && cemetery) {
+      await this.constructAndCreateGraveLocation(manager, cemetery, deceased, dto);
+    } else if (deceased.graveLocation && (dto || cemetery)) {
+      await this.updateGraveLocation(manager, deceased.graveLocation, cemetery, dto);
+    }
+  }
+
+  public async constructAndCreateGraveLocation(
+    manager: EntityManager,
+    cemetery: TCreateDeceasedProfileCemetery,
+    deceased: TConstructGraveLocationDtoDeceased,
+    dto?: CreateGraveLocationDto | UpdateGraveLocationDto,
+  ): Promise<GraveLocation> {
+    const graveLocationDto = this.constructCreateGraveLocationDto(cemetery, deceased, dto);
+
+    return await this.createGraveLocation(manager, graveLocationDto);
+  }
+
+  private async createGraveLocation(manager: EntityManager, dto: IGraveLocation): Promise<GraveLocation> {
+    const graveLocationRepository = manager.getRepository(GraveLocation);
+    const newGraveLocation = graveLocationRepository.create(dto);
+
+    return await graveLocationRepository.save(newGraveLocation);
+  }
+
+  private async updateGraveLocation(
+    manager: EntityManager,
+    existingGraveLocation: NonNullable<TUpdateDeceasedProfile['graveLocation']>,
+    cemetery: TUpdateDeceasedProfileCemetery | null,
+    dto?: UpdateGraveLocationDto,
+  ): Promise<void> {
+    const graveLocationDto = this.constructUpdateGraveLocationDto(existingGraveLocation, cemetery, dto);
+
+    await manager.getRepository(GraveLocation).update({ id: existingGraveLocation.id }, graveLocationDto);
+  }
+
+  private constructCreateGraveLocationDto(
+    cemetery: TCreateDeceasedProfileCemetery,
+    deceased: TConstructGraveLocationDtoDeceased,
+    dto?: CreateGraveLocationDto | UpdateGraveLocationDto,
+  ): IGraveLocation {
+    return {
+      latitude: dto?.latitude ?? null,
+      longitude: dto?.longitude ?? null,
+      altitude: dto?.altitude ?? null,
+      cemetery,
+      deceased,
+    };
+  }
+
+  private constructUpdateGraveLocationDto(
+    existingGraveLocation: NonNullable<TUpdateDeceasedProfile['graveLocation']>,
+    cemetery: TUpdateDeceasedProfileCemetery | null,
+    dto?: UpdateGraveLocationDto,
+  ): StrictOmit<IGraveLocation, 'deceased'> {
+    return {
+      latitude: dto?.latitude ?? existingGraveLocation.latitude,
+      longitude: dto?.longitude ?? existingGraveLocation.longitude,
+      altitude: dto?.altitude ?? existingGraveLocation.altitude,
+      cemetery: cemetery ?? existingGraveLocation.cemetery,
+    };
+  }
+}

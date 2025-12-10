@@ -6,6 +6,7 @@ import { QueueConsumerBridgeService } from 'src/libs/queues/queue-consumer-bridg
 import { BULLMQ_CONNECTION } from 'src/libs/queues/queue/common/constants';
 import { EQueueType, EWorkerType } from 'src/libs/queues/queue/common/enums';
 import { IQueueJobType, IWorkerSettings } from 'src/libs/queues/queue/common/interfaces';
+import { StrictOmit } from 'src/common/types';
 
 /**
  * Service responsible for managing BullMQ workers throughout the application lifecycle.
@@ -107,7 +108,7 @@ export class WorkerManagementService implements OnModuleInit, OnModuleDestroy {
         max: 1,
         duration: NUMBER_OF_MILLISECONDS_IN_SECOND,
       },
-    } as const satisfies Omit<WorkerOptions, 'connection' | 'name'>;
+    } as const satisfies StrictOmit<WorkerOptions, 'connection' | 'name'>;
 
     switch (queueEnum) {
       case EQueueType.PAYMENTS_QUEUE:

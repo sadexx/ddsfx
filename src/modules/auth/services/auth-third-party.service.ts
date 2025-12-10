@@ -5,7 +5,7 @@ import { AuthService } from 'src/modules/auth/services/auth.service';
 import { AuthRegistrationService } from 'src/modules/auth/services/auth-registration.service';
 import { LoginThirdPartyMobileDto } from 'src/modules/auth/common/dto';
 import { IClientInfo } from 'src/common/interfaces';
-import { EAuthProvider, ERegistrationStrategy } from 'src/modules/auth/common/enums';
+import { ERegistrationStrategy } from 'src/modules/auth/common/enums';
 import { IStartRegistrationOutput, OneRoleLoginOutput } from 'src/modules/auth/common/outputs';
 import { IAppleProviderOutput, IGoogleProviderOutput } from 'src/libs/tokens/common/interfaces';
 import { Injectable } from '@nestjs/common';
@@ -31,7 +31,7 @@ export class AuthThirdPartyService {
       return this.authRegistrationService.startOathRegistration(registrationStrategy, mobileToken, clientInfo, dto);
     }
 
-    return await this.authService.handleRoleBasedLogin(EAuthProvider.APPLE, clientInfo, dto, account);
+    return await this.authService.handleRoleBasedLogin(registrationStrategy, clientInfo, dto, account);
   }
 
   private async getAccountByIdentity(identity: string): Promise<User | null> {

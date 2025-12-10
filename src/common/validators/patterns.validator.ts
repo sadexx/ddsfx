@@ -53,3 +53,27 @@ export const LongitudePattern = Type.Number({
   maximum: 180,
   description: 'Longitude in decimal degrees (-180 to 180)',
 });
+
+export const AltitudePattern = Type.Number({
+  minimum: -500,
+  maximum: 9000,
+  description: 'Altitude in meters (-500 to 9000)',
+});
+
+export const DayPattern = Type.Number({
+  minimum: 1,
+  maximum: 31,
+  description: 'Day of month (1-31)',
+});
+
+export const MonthPattern = Type.Number({
+  minimum: 1,
+  maximum: 12,
+  description: 'Month of year (1-12)',
+});
+
+export const YearPattern = Type.Number({
+  minimum: 1900,
+  maximum: 2100,
+  description: 'Year (4 digits)',
+});

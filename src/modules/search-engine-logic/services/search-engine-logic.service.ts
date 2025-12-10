@@ -10,7 +10,7 @@ import { RedisService } from 'src/libs/redis/services';
 import { NUMBER_OF_MINUTES_IN_HOUR, NUMBER_OF_SECONDS_IN_MINUTE } from 'src/common/constants';
 import { SettingsService } from 'src/modules/settings/services';
 import { IFastSearchRequest } from 'src/modules/search-engine-logic/common/interfaces';
-import { IPerson } from 'src/modules/external-sync/common/interfaces';
+import { PersonSchema } from 'src/modules/search-engine-logic/schemas';
 import { IClientInfo } from 'src/common/interfaces';
 
 @Injectable()
@@ -55,7 +55,7 @@ export class SearchEngineLogicService {
     const result = await this.searchService.search(queryOption);
 
     const people = result.hits.hits.map((hit) => ({
-      ...(hit._source as IPerson),
+      ...(hit._source as PersonSchema),
       score: hit._score || 0,
     }));
 

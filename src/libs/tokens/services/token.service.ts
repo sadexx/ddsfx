@@ -14,7 +14,7 @@ import {
   IOpaqueTokenData,
 } from 'src/libs/tokens/common/interfaces';
 import { EUserRoleName } from 'src/modules/users/common/enum';
-import { AppleTokenService } from './apple-token.service';
+import { AppleTokenService } from 'src/libs/tokens/services';
 
 @Injectable()
 export class TokenService {

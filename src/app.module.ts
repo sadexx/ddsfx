@@ -23,12 +23,16 @@ import { QueueProducerModule } from 'src/libs/queues/queue-producer/queue-produc
 import { OpenSearchModule } from 'src/libs/opensearch/opensearch.module';
 import { AwsConfigModule } from 'src/libs/aws/config/aws-config.module';
 import { AwsEndUserMessagingModule } from 'src/libs/aws/end-user-messaging/aws-end-user-messaging.module';
+import { FileManagementModule } from 'src/libs/file-management/file-management.module';
 import { WebSocketGatewayModule } from 'src/modules/web-socket-gateway/web-socket-gateway.module';
 import { AuthModule } from 'src/modules/auth/auth.module';
 import { OtpModule } from 'src/modules/otp/otp.module';
 import { SettingsModule } from 'src/modules/settings/settings.module';
 import { SearchEngineLogicModule } from 'src/modules/search-engine-logic/search-engine-logic.module';
 import { UsersModule } from 'src/modules/users/users.module';
+import { CemeteryModule } from 'src/modules/cemetery/cemetery.module';
+import { DeceasedModule } from 'src/modules/deceased/deceased.module';
+import { ComplaintFormModule } from 'src/modules/complaint-form/complaint-form.module';
 
 const configModuleOptions: ConfigModuleOptions = {
   isGlobal: true,
@@ -59,11 +63,15 @@ const configModuleOptions: ConfigModuleOptions = {
     OpenSearchModule,
     AwsConfigModule,
     AwsEndUserMessagingModule,
+    FileManagementModule,
     AuthModule,
     OtpModule,
     SettingsModule,
     SearchEngineLogicModule,
     UsersModule,
+    CemeteryModule,
+    DeceasedModule,
+    ComplaintFormModule,
   ],
   providers: [
     {

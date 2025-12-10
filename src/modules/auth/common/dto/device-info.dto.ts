@@ -4,7 +4,6 @@ import { EPlatformType } from 'src/modules/sessions/common/enum';
 
 export class DeviceInfoDto {
   platform: EPlatformType;
-  deviceId: string;
   pushNotificationToken: string | null;
   appVersion: string;
   osVersion: string;
@@ -13,7 +12,6 @@ export class DeviceInfoDto {
   static readonly schema = Type.Object(
     {
       platform: Type.Enum(EPlatformType),
-      deviceId: StandardStringPattern,
       pushNotificationToken: Type.Union([StandardStringPattern, Type.Null()]),
       appVersion: StandardStringPattern,
       osVersion: StandardStringPattern,

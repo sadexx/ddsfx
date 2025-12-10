@@ -14,7 +14,6 @@ export interface Session {
   ipAddress: string;
   userAgent: string;
   platform: EPlatformType;
-  deviceId: string;
   pushNotificationToken: string | null;
   appVersion: string;
   osVersion: string;
@@ -71,10 +70,6 @@ export const Session = new EntitySchema<Session>({
       type: 'enum',
       name: 'platform',
       enum: EPlatformType,
-    },
-    deviceId: {
-      type: 'varchar',
-      name: 'device_id',
     },
     pushNotificationToken: {
       type: 'varchar',
@@ -145,10 +140,4 @@ export const Session = new EntitySchema<Session>({
       onDelete: 'CASCADE',
     },
   },
-  uniques: [
-    {
-      name: 'UQ_sessions_device_id_user_id',
-      columns: ['deviceId', 'user'],
-    },
-  ],
 });

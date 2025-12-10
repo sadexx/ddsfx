@@ -1,4 +1,4 @@
-import { QueryResultType } from 'src/common/types/type-orm-query-result.type';
+import { QueryResultType } from 'src/common/types';
 import { FindOptionsSelect } from 'typeorm';
 import { Setting } from 'src/modules/settings/entities';
 

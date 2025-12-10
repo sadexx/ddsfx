@@ -33,6 +33,9 @@ export type EnvConfig = Readonly<{
   AWS_REGION: string;
   AWS_ACCESS_KEY_ID: string;
   AWS_SECRET_ACCESS_KEY: string;
+  AWS_S3_BUCKET_NAME: string;
+  AWS_CLOUDFRONT_DISTRIBUTION_ID: string;
+  AWS_CLOUDFRONT_DOMAIN_NAME: string;
   APPLE_CLIENT_ID: string;
   GOOGLE_OAUTH2_CLIENT_ID: string;
 }>;

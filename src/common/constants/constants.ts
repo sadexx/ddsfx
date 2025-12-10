@@ -56,3 +56,7 @@ export const LOKI_URL: string = process.env['LOKI_URL'] as string;
 export const API_PREFIX: string = 'v1';
 export const NUMBER_BYTES_IN_KILOBYTE: number = 1024;
 export const NUMBER_BYTES_IN_MEGABYTE: number = 1_048_576;
+// eslint-disable-next-line @typescript-eslint/no-magic-numbers
+export const FILE_SIZE_LIMIT = NUMBER_BYTES_IN_MEGABYTE * 2;
+export const MAX_ALLOWED_FILES = 4;
+export const MAX_FILE_SIZE_LIMIT = FILE_SIZE_LIMIT * MAX_ALLOWED_FILES;

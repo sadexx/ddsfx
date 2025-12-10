@@ -45,6 +45,7 @@ export class SessionService {
     return {
       accessToken: accessToken,
       refreshToken: refreshToken,
+      sessionId: session.id,
     };
   }
 
@@ -63,7 +64,6 @@ export class SessionService {
       ipAddress: clientInfo.ipAddress,
       userAgent: clientInfo.userAgent,
       platform: dto.deviceInfo.platform,
-      deviceId: dto.deviceInfo.deviceId,
       pushNotificationToken: dto.deviceInfo.pushNotificationToken,
       appVersion: dto.deviceInfo.appVersion,
       osVersion: dto.deviceInfo.osVersion,
@@ -85,10 +85,7 @@ export class SessionService {
       creationDate: new Date(),
     });
 
-    await this.sessionsRepository.upsert(session, {
-      upsertType: 'on-duplicate-key-update',
-      conflictPaths: { deviceId: true, user: true },
-    });
+    await this.sessionsRepository.save(session);
 
     return session;
   }
@@ -98,7 +95,7 @@ export class SessionService {
     clientInfo: IClientInfo,
     dto: RefreshTokensDto,
   ): Promise<OneRoleLoginOutput> {
-    const session = await this.getAccessSession(dto.deviceInfo.deviceId);
+    const session = await this.getAccessSession(dto.sessionId);
 
     const isValidResult = await this.validateSession(tokenDto, clientInfo, dto, session);
 
@@ -122,6 +119,7 @@ export class SessionService {
     return {
       accessToken: accessToken,
       refreshToken: refreshToken,
+      sessionId: session.id,
     };
   }
 
@@ -142,9 +140,9 @@ export class SessionService {
       .execute();
   }
 
-  private async getAccessSession(deviceId: string): Promise<Session> {
+  private async getAccessSession(sessionId: string): Promise<Session> {
     const session = await this.sessionsRepository.findOne({
-      where: { deviceId: deviceId },
+      where: { id: sessionId },
       relations: { user: true },
     });
 
@@ -174,14 +172,18 @@ export class SessionService {
     session: Session,
   ): Promise<boolean> {
     const errorContext = {
-      sessionId: session.id,
-      deviceId: dto.deviceInfo.deviceId,
+      sessionId: dto.sessionId,
     };
 
     const isRefreshTokenValid = await this.argon2HashingService.compare(tokenDto.token, session.refreshToken);
 
     if (!isRefreshTokenValid) {
       this.lokiLogger.error(`Refresh token hash mismatch attempt: ${JSON.stringify(errorContext)}`);
+      this.lokiLogger.debug(`Refresh token mismatch - tokenDto: ${JSON.stringify(tokenDto)}`);
+      this.lokiLogger.debug(`Refresh token mismatch - session: ${JSON.stringify(session)}`);
+      const hashedRefreshTokenFromUser = await this.argon2HashingService.hash(tokenDto.token);
+      this.lokiLogger.debug(`Hashed refresh token from user: ${hashedRefreshTokenFromUser}`);
+      this.lokiLogger.debug(`Refresh token mismatch - session refresh token: ${session.refreshToken}`);
 
       return false;
     }

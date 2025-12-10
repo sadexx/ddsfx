@@ -14,7 +14,7 @@ export class UserService {
   public async getUserProfile(user: ITokenUserPayload): Promise<User> {
     const userProfile = await this.userRepository.findOneOrFail({
       where: { id: user.sub },
-      relations: { roles: { role: true } },
+      relations: { roles: { role: true }, profile: true },
     });
 
     return userProfile;

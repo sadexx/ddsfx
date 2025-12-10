@@ -1,4 +1,5 @@
-export class PaginationOutput {
+export class PaginationOutput<T> {
+  data: T[];
   total: number;
   limit?: number;
   offset?: number;

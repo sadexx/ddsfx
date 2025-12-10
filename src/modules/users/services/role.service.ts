@@ -1,7 +1,7 @@
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Role } from 'src/modules/users/entities';
-import { EUserRoleName } from '../common/enum';
+import { EUserRoleName } from 'src/modules/users/common/enum';
 import { Injectable } from '@nestjs/common';
 import { LokiLogger } from 'src/libs/logger';
 
@@ -24,8 +24,7 @@ export class RoleService {
         const role = this.roleRepository.create({ roleName: roleName });
         await this.roleRepository.save(role);
       }
+      this.lokiLogger.log(`Seeded Roles table, added record for roles: ${roles.join(', ')}`);
     }
-
-    this.lokiLogger.log(`Seeded Roles table, added record`);
   }
 }

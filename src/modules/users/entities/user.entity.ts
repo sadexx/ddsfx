@@ -1,11 +1,17 @@
 import { Session } from 'src/modules/sessions/entities';
-import { UserRole } from 'src/modules/users/entities';
+import { UserProfile, UserRole } from 'src/modules/users/entities';
+import { ComplaintForm } from 'src/modules/complaint-form/entities';
 import { EntitySchema } from 'typeorm';
+import { DeceasedSubscription } from 'src/modules/deceased/entities';
 
 export interface User {
   id: string;
   sessions: Session[];
   roles: UserRole[];
+  profile: UserProfile | null;
+  deceasedSubscriptions: DeceasedSubscription[];
+  complaintsReported: ComplaintForm[];
+  complaintsReceived: ComplaintForm[];
   email: string | null;
   isEmailVerified: boolean;
   passwordHash: string | null;
@@ -71,6 +77,26 @@ export const User = new EntitySchema<User>({
       type: 'one-to-many',
       target: 'UserRole',
       inverseSide: 'user',
+    },
+    profile: {
+      type: 'one-to-one',
+      target: 'UserProfile',
+      inverseSide: 'user',
+    },
+    deceasedSubscriptions: {
+      type: 'one-to-many',
+      target: 'DeceasedSubscription',
+      inverseSide: 'user',
+    },
+    complaintsReported: {
+      type: 'one-to-many',
+      target: 'ComplaintForm',
+      inverseSide: 'reportedUser',
+    },
+    complaintsReceived: {
+      type: 'one-to-many',
+      target: 'ComplaintForm',
+      inverseSide: 'subjectUser',
     },
   },
 });

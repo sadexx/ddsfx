@@ -1,6 +1,6 @@
 import { Type } from '@sinclair/typebox';
 import { Static } from '@sinclair/typebox';
-import { EWebSocketEventTypes } from '../enum';
+import { EWebSocketEventTypes } from 'src/modules/web-socket-gateway/common/enum';
 
 export const SearchEventDto = Type.Object(
   {

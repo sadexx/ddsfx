@@ -9,6 +9,7 @@ import { NUMBER_OF_MINUTES_IN_DAY, NUMBER_OF_SECONDS_IN_MINUTE } from 'src/commo
 import { IMessageOutput } from 'src/common/outputs';
 import { SettingsQuery, TSettings } from 'src/modules/settings/common/types';
 import { findManyTyped } from 'src/common/utils/find-many-typed';
+import { StrictOmit } from 'src/common/types';
 
 @Injectable()
 export class SettingsService {
@@ -25,7 +26,7 @@ export class SettingsService {
     const ratesCount = await this.settingsRepository.count();
 
     if (ratesCount === 0) {
-      const seedData: Omit<Setting, 'id' | 'creationDate' | 'updatingDate'> = {
+      const seedData: StrictOmit<Setting, 'id' | 'creationDate' | 'updatingDate'> = {
         description: 'Default description',
         fastSearchMaxRequestsPerHour: 100,
       };

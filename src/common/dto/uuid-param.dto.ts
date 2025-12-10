@@ -1,10 +1,11 @@
 import { Type } from '@sinclair/typebox';
+import { UUIDPattern } from 'src/common/validators';
 
 export class UUIDParamDto {
   id: string;
 
   static readonly schema = Type.Object({
-    id: Type.String({ format: 'uuid', minLength: 36, maxLength: 36 }),
+    id: UUIDPattern,
   });
 }
 
@@ -12,6 +13,6 @@ export class OptionalUUIDParamDto {
   id?: string;
 
   static readonly schema = Type.Object({
-    id: Type.Optional(Type.String({ format: 'uuid', minLength: 36, maxLength: 36 })),
+    id: Type.Optional(UUIDPattern),
   });
 }
