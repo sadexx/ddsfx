@@ -1,6 +1,6 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { Deceased, DeceasedSubscription } from 'src/modules/deceased/entities';
-import { DataSource, EntityManager, Repository } from 'typeorm';
+import { DataSource, EntityManager, FindOneOptions, Repository } from 'typeorm';
 import { CreateDeceasedSubscriptionDto } from 'src/modules/deceased/common/dto';
 import { IDeceasedSubscription } from 'src/modules/deceased/common/interfaces';
 import {
@@ -8,20 +8,27 @@ import {
   TConstructAndCreateDeceasedSubscriptionUser,
   TGetDeceasedSubscription,
   TGetDeceasedSubscriptions,
+  TGetMyDeceasedSubscriptions,
   TSubscribeDeceasedProfileDeceased,
   TSubscribeDeceasedProfileUser,
 } from 'src/modules/deceased/common/types';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DeceasedQueryOptionsService, DeceasedValidationService } from 'src/modules/deceased/services';
-import { findManyAndCountTyped } from 'src/common/utils/find-many-typed';
+import {
+  DeceasedQueryOptionsService,
+  DeceasedSyncService,
+  DeceasedValidationService,
+} from 'src/modules/deceased/services';
+import { findManyAndCountTyped, findManyTyped } from 'src/common/utils/find-many-typed';
 import { PaginationQueryDto, UUIDParamDto } from 'src/common/dto';
 import { PaginationOutput } from 'src/common/outputs';
-import { findOneOrFailTyped } from 'src/common/utils/find-one-typed';
+import { findOneOrFailTyped, findOneTyped } from 'src/common/utils/find-one-typed';
 import { ITokenUserPayload } from 'src/libs/tokens/common/interfaces';
 import { User } from 'src/modules/users/entities';
+import { LokiLogger } from 'src/libs/logger';
 
 @Injectable()
 export class DeceasedSubscriptionService {
+  private readonly lokiLogger = new LokiLogger(DeceasedSubscriptionService.name);
   constructor(
     @InjectRepository(DeceasedSubscription)
     private readonly deceasedSubscriptionRepository: Repository<DeceasedSubscription>,
@@ -31,8 +38,19 @@ export class DeceasedSubscriptionService {
     private readonly userRepository: Repository<User>,
     private readonly deceasedQueryOptionsService: DeceasedQueryOptionsService,
     private readonly deceasedValidationService: DeceasedValidationService,
+    private readonly deceasedSyncService: DeceasedSyncService,
     private readonly dataSource: DataSource,
   ) {}
+
+  public async getMyDeceasedSubscriptions(user: ITokenUserPayload): Promise<TGetMyDeceasedSubscriptions[]> {
+    const queryOptions = this.deceasedQueryOptionsService.getMyDeceasedSubscriptionsOptions(user.sub);
+    const deceasedSubscriptions = await findManyTyped<TGetMyDeceasedSubscriptions[]>(
+      this.deceasedSubscriptionRepository,
+      queryOptions,
+    );
+
+    return deceasedSubscriptions;
+  }
 
   public async getDeceasedSubscriptions(
     param: UUIDParamDto,
@@ -70,6 +88,8 @@ export class DeceasedSubscriptionService {
     await this.dataSource.transaction(async (manager) => {
       await this.constructAndCreateDeceasedSubscription(manager, dto, currentUser, deceased);
     });
+
+    await this.deceasedSyncService.updateDeceasedIndex(deceased.id);
   }
 
   public async constructAndCreateDeceasedSubscription(
@@ -85,6 +105,7 @@ export class DeceasedSubscriptionService {
 
   public async unsubscribeDeceasedProfile(param: UUIDParamDto, user: ITokenUserPayload): Promise<void> {
     await this.deceasedSubscriptionRepository.delete({ deceased: { id: param.id }, user: { id: user.sub } });
+    await this.deceasedSyncService.updateDeceasedIndex(param.id);
   }
 
   public async ensureDeceasedSubscription(userId: string, deceasedId: string): Promise<void> {
@@ -107,13 +128,25 @@ export class DeceasedSubscriptionService {
       this.userRepository,
       queryOptions.user,
     );
-    const deceased = await findOneOrFailTyped<TSubscribeDeceasedProfileDeceased>(
-      deceasedId,
-      this.deceasedRepository,
-      queryOptions.deceased,
-    );
+    const deceased = await this.loadDeceasedEntity(deceasedId, queryOptions.deceased);
 
     return { currentUser, deceased };
+  }
+
+  private async loadDeceasedEntity(
+    deceasedId: string,
+    queryOptions: FindOneOptions<Deceased>,
+  ): Promise<TSubscribeDeceasedProfileDeceased> {
+    let deceased = await findOneTyped<TSubscribeDeceasedProfileDeceased>(this.deceasedRepository, queryOptions);
+
+    console.log(deceased);
+
+    if (!deceased) {
+      this.lokiLogger.log(`Deceased ${deceasedId} not found in city, fetching from OS`);
+      deceased = await this.deceasedSyncService.createDeceasedFromIndex(deceasedId);
+    }
+
+    return deceased;
   }
 
   private async createDeceasedSubscription(

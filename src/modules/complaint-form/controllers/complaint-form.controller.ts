@@ -13,6 +13,7 @@ import { ValidateAndTransformPipe } from 'src/common/pipes';
 export class ComplaintFormController {
   constructor(private readonly complaintFormService: ComplaintFormService) {}
 
+  // TODO: Remove this endpoint after admin panel is ready
   @UseGuards(JwtFullAccessGuard)
   @Get()
   async getAll(@CurrentUser() user: ITokenUserPayload): Promise<ComplaintForm[]> {

@@ -106,6 +106,7 @@ export const Address = new EntitySchema<Address>({
         referencedColumnName: 'id',
         foreignKeyConstraintName: 'FK_addresses_cemeteries',
       },
+      nullable: true,
       onDelete: 'CASCADE',
     },
   },

@@ -4,7 +4,7 @@ import { GraveLocation } from 'src/modules/cemetery/entities';
 
 export interface Cemetery {
   id: string;
-  address: Address;
+  address: Address | null;
   graveLocations: GraveLocation[];
   name: string;
   creationDate: Date;
@@ -42,6 +42,7 @@ export const Cemetery = new EntitySchema<Cemetery>({
       type: 'one-to-one',
       target: 'Address',
       inverseSide: 'cemetery',
+      cascade: ['insert', 'update'],
     },
     graveLocations: {
       type: 'one-to-many',

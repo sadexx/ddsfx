@@ -33,6 +33,8 @@ import { UsersModule } from 'src/modules/users/users.module';
 import { CemeteryModule } from 'src/modules/cemetery/cemetery.module';
 import { DeceasedModule } from 'src/modules/deceased/deceased.module';
 import { ComplaintFormModule } from 'src/modules/complaint-form/complaint-form.module';
+import { DeceasedCorrectionModule } from 'src/modules/deceased-correction/deceased-correction.module';
+import { DeceasedHighlightsModule } from 'src/modules/deceased-highlights/deceased-highlights.module';
 
 const configModuleOptions: ConfigModuleOptions = {
   isGlobal: true,
@@ -72,6 +74,8 @@ const configModuleOptions: ConfigModuleOptions = {
     CemeteryModule,
     DeceasedModule,
     ComplaintFormModule,
+    DeceasedCorrectionModule,
+    DeceasedHighlightsModule,
   ],
   providers: [
     {

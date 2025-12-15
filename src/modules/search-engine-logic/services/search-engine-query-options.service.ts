@@ -1,8 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { QueryContainer } from '@opensearch-project/opensearch/api/_types/_common.query_dsl.js';
 import { Search_Request } from '@opensearch-project/opensearch/api/index.js';
-import { ESortOrder } from 'src/common/enums';
-import { EOpenSearchIndexType } from 'src/libs/opensearch/common/enums';
+import { EOpenSearchIndexType, EOpenSearchSortOrder } from 'src/libs/opensearch/common/enums';
 
 @Injectable()
 export class SearchEngineQueryOptionsService {
@@ -41,8 +40,8 @@ export class SearchEngineQueryOptionsService {
         size: 10,
         sort: [
           '_score',
-          { 'lastName.keyword': { order: ESortOrder.asc, missing: '_last' } },
-          { 'firstName.keyword': { order: ESortOrder.asc, missing: '_last' } },
+          { 'lastName.keyword': { order: EOpenSearchSortOrder.ASC, missing: '_last' } },
+          { 'firstName.keyword': { order: EOpenSearchSortOrder.ASC, missing: '_last' } },
         ],
       },
     };

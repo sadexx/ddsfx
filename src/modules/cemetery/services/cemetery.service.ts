@@ -14,14 +14,26 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { CemeteryQueryOptionsService } from 'src/modules/cemetery/services';
 import { PaginationOutput } from 'src/common/outputs';
 import { findManyAndCountQueryBuilderTyped } from 'src/common/utils/find-many-typed';
+import { cemeteriesSeedData } from 'src/modules/cemetery/common/seed-data';
+import { LokiLogger } from 'src/libs/logger';
 
 @Injectable()
 export class CemeteryService {
+  private readonly lokiLogger = new LokiLogger(CemeteryService.name);
   constructor(
     @InjectRepository(Cemetery)
     private readonly cemeteryRepository: Repository<Cemetery>,
     private readonly cemeteryQueryOptionsService: CemeteryQueryOptionsService,
   ) {}
+
+  public async seedCemeteries(): Promise<void> {
+    const existingCemeteries = await this.cemeteryRepository.count();
+
+    if (existingCemeteries === 0) {
+      await this.cemeteryRepository.save(cemeteriesSeedData);
+      this.lokiLogger.log(`Seeded Cemeteries table, added record for ${cemeteriesSeedData.length} cemeteries`);
+    }
+  }
 
   public async getCemeteries(dto: GetCemeteriesDto): Promise<PaginationOutput<TGetCemeteries>> {
     const queryBuilder = this.cemeteryRepository.createQueryBuilder('cemetery');

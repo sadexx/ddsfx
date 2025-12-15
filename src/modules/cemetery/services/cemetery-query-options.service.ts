@@ -7,7 +7,7 @@ export class CemeteryQueryOptionsService {
     queryBuilder.select(['cemetery.id', 'cemetery.name', 'cemetery.creationDate']).take(dto.limit).skip(dto.offset);
 
     if (dto.sortOrder) {
-      queryBuilder.orderBy('cemetery.creationDate', dto.sortOrder.toUpperCase() as 'ASC' | 'DESC');
+      queryBuilder.orderBy('cemetery.creationDate', dto.sortOrder);
     }
 
     if (dto.searchField) {

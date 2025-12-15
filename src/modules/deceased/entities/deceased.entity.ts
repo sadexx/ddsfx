@@ -2,16 +2,32 @@ import { EntitySchema } from 'typeorm';
 import { GraveLocation } from 'src/modules/cemetery/entities';
 import { EDeceasedStatus } from 'src/modules/deceased/common/enums';
 import { DeceasedSubscription } from 'src/modules/deceased/entities';
+import { DeceasedCorrection } from 'src/modules/deceased-correction/entities';
+import {
+  DeceasedBiography,
+  DeceasedEducation,
+  DeceasedEmployment,
+  DeceasedHobby,
+  DeceasedResidence,
+  DeceasedSocialMediaLink,
+} from 'src/modules/deceased-highlights/entities';
 
 export interface Deceased {
   id: string;
   graveLocation: GraveLocation | null;
   deceasedSubscriptions: DeceasedSubscription[];
+  deceasedCorrections: DeceasedCorrection[];
+  deceasedBiographies: DeceasedBiography[];
+  deceasedEducations: DeceasedEducation[];
+  deceasedEmployments: DeceasedEmployment[];
+  deceasedHobbies: DeceasedHobby[];
+  deceasedResidences: DeceasedResidence[];
+  deceasedSocialMediaLinks: DeceasedSocialMediaLink[];
   status: EDeceasedStatus;
+  originalId: number | null;
   firstName: string | null;
   lastName: string | null;
   middleName: string | null;
-  biography: string | null;
   deathDay: number | null;
   deathMonth: number | null;
   deathYear: number | null;
@@ -39,7 +55,11 @@ export const Deceased = new EntitySchema<Deceased>({
       type: 'enum',
       name: 'status',
       enum: EDeceasedStatus,
-      default: EDeceasedStatus.PENDING,
+    },
+    originalId: {
+      type: 'integer',
+      name: 'original_id',
+      nullable: true,
     },
     firstName: {
       type: 'varchar',
@@ -54,11 +74,6 @@ export const Deceased = new EntitySchema<Deceased>({
     middleName: {
       type: 'varchar',
       name: 'middle_name',
-      nullable: true,
-    },
-    biography: {
-      type: 'text',
-      name: 'biography',
       nullable: true,
     },
     deathDay: {
@@ -121,6 +136,41 @@ export const Deceased = new EntitySchema<Deceased>({
     deceasedSubscriptions: {
       type: 'one-to-many',
       target: 'DeceasedSubscription',
+      inverseSide: 'deceased',
+    },
+    deceasedCorrections: {
+      type: 'one-to-many',
+      target: 'DeceasedCorrection',
+      inverseSide: 'deceased',
+    },
+    deceasedBiographies: {
+      type: 'one-to-many',
+      target: 'DeceasedBiography',
+      inverseSide: 'deceased',
+    },
+    deceasedEducations: {
+      type: 'one-to-many',
+      target: 'DeceasedEducation',
+      inverseSide: 'deceased',
+    },
+    deceasedEmployments: {
+      type: 'one-to-many',
+      target: 'DeceasedEmployment',
+      inverseSide: 'deceased',
+    },
+    deceasedHobbies: {
+      type: 'one-to-many',
+      target: 'DeceasedHobby',
+      inverseSide: 'deceased',
+    },
+    deceasedResidences: {
+      type: 'one-to-many',
+      target: 'DeceasedResidence',
+      inverseSide: 'deceased',
+    },
+    deceasedSocialMediaLinks: {
+      type: 'one-to-many',
+      target: 'DeceasedSocialMediaLink',
       inverseSide: 'deceased',
     },
   },

@@ -3,6 +3,6 @@ import { TCreateDeceasedProfileUser } from 'src/modules/deceased/common/types';
 export interface IUserProfile {
   firstName: string;
   lastName: string;
-  middleName: string;
+  middleName: string | null;
   user: TCreateDeceasedProfileUser;
 }

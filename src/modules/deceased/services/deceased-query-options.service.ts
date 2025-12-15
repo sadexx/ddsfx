@@ -7,6 +7,8 @@ import {
   CreateDeceasedProfileUserQuery,
   GetDeceasedSubscriptionQuery,
   GetDeceasedSubscriptionsQuery,
+  GetMyDeceasedSubscriptionsQuery,
+  LoadDeceasedWithRelationsQuery,
   SubscribeDeceasedProfileDeceasedQuery,
   SubscribeDeceasedProfileUserQuery,
   UpdateDeceasedProfileCemeteryQuery,
@@ -14,6 +16,7 @@ import {
 } from 'src/modules/deceased/common/types';
 import { Deceased, DeceasedSubscription } from 'src/modules/deceased/entities';
 import { PaginationQueryDto } from 'src/common/dto';
+import { ESortOrder } from 'src/common/enums';
 
 @Injectable()
 export class DeceasedQueryOptionsService {
@@ -29,7 +32,6 @@ export class DeceasedQueryOptionsService {
     queryBuilder
       .select([
         'deceased.id',
-        'deceased.biography',
         'deceased.firstName',
         'deceased.lastName',
         'deceased.middleName',
@@ -88,6 +90,14 @@ export class DeceasedQueryOptionsService {
    ** DeceasedSubscriptionService
    */
 
+  public getMyDeceasedSubscriptionsOptions(userId: string): FindManyOptions<DeceasedSubscription> {
+    return {
+      select: GetMyDeceasedSubscriptionsQuery.select,
+      where: { user: { id: userId } },
+      relations: GetMyDeceasedSubscriptionsQuery.relations,
+    };
+  }
+
   public getDeceasedSubscriptionsOptions(
     dto: PaginationQueryDto,
     deceasedId: string,
@@ -130,6 +140,19 @@ export class DeceasedQueryOptionsService {
   public ensureDeceasedSubscriptionOptions(userId: string, deceasedId: string): FindOneOptions<DeceasedSubscription> {
     return {
       where: { user: { id: userId }, deceased: { id: deceasedId } },
+    };
+  }
+
+  /**
+   ** DeceasedSyncService
+   */
+
+  public loadDeceasedWithRelationsOptions(deceasedId: string): FindOneOptions<Deceased> {
+    return {
+      select: LoadDeceasedWithRelationsQuery.select,
+      where: { id: deceasedId },
+      relations: LoadDeceasedWithRelationsQuery.relations,
+      order: { deceasedSubscriptions: { creationDate: ESortOrder.DESC } },
     };
   }
 }

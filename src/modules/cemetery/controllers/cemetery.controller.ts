@@ -13,7 +13,7 @@ export class CemeteryController {
   @UseGuards(JwtFullAccessGuard)
   @Get()
   @RouteSchema({ querystring: GetCemeteriesDto.schema })
-  async getDeceased(@Query() dto: GetCemeteriesDto): Promise<PaginationOutput<TGetCemeteries>> {
+  async getCemeteries(@Query() dto: GetCemeteriesDto): Promise<PaginationOutput<TGetCemeteries>> {
     return this.cemeteryService.getCemeteries(dto);
   }
 }

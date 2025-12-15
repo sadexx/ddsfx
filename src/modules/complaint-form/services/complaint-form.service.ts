@@ -21,9 +21,7 @@ export class ComplaintFormService {
 
   public async getAll(user: ITokenUserPayload): Promise<ComplaintForm[]> {
     const complaintForms = await this.complaintFormRepository.find({
-      select: {
-        subjectUser: { id: true },
-      },
+      select: { subjectUser: { id: true } },
       where: { reportedUser: { id: user.sub } },
       relations: { subjectUser: true },
       order: { creationDate: ESortOrder.DESC },

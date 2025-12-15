@@ -3,7 +3,6 @@ import { DayPattern, MonthPattern, StandardStringPattern, UUIDPattern, YearPatte
 import { UpdateGraveLocationDto } from 'src/modules/cemetery/common/dto';
 
 export class UpdateDeceasedProfileDto {
-  biography?: string;
   firstName?: string;
   lastName?: string;
   middleName?: string;
@@ -18,7 +17,6 @@ export class UpdateDeceasedProfileDto {
 
   static readonly schema = Type.Object(
     {
-      biography: Type.Optional(Type.String({ minLength: 10, maxLength: 1000 })),
       firstName: Type.Optional(StandardStringPattern),
       lastName: Type.Optional(StandardStringPattern),
       middleName: Type.Optional(StandardStringPattern),

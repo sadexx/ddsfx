@@ -17,6 +17,18 @@ export type TConstructAndCreateDeceasedSubscriptionDeceased = Pick<Deceased, 'id
  ** Query types
  */
 
+export const GetMyDeceasedSubscriptionsQuery = {
+  select: {
+    id: true,
+    deceased: { id: true, firstName: true, lastName: true, middleName: true },
+  } as const satisfies FindOptionsSelect<DeceasedSubscription>,
+  relations: { deceased: true } as const satisfies FindOptionsRelations<DeceasedSubscription>,
+};
+export type TGetMyDeceasedSubscriptions = QueryResultType<
+  DeceasedSubscription,
+  typeof GetMyDeceasedSubscriptionsQuery.select
+>;
+
 export const GetDeceasedSubscriptionsQuery = {
   select: {
     id: true,

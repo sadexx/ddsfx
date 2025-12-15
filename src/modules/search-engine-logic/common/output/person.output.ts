@@ -1,13 +1,13 @@
 export interface IPersonOutput {
   id: string;
-  originalId: number;
-  gpsLatitude: number;
-  gpsAltitude: number;
-  gpsLongitude: number;
-  cemeteryLabel: string;
-  regionLabel: string;
-  regionLabelFull: string;
-  genderCode: string;
+  originalId: number | null;
+  gpsLatitude: number | null;
+  gpsAltitude: number | null;
+  gpsLongitude: number | null;
+  cemeteryLabel: string | null;
+  regionLabel: string | null;
+  regionLabelFull: string | null;
+  genderCode: string | null;
   firstName: string | null;
   lastName: string | null;
   middleName: string | null;

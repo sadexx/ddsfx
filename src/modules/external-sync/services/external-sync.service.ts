@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { InjectRepository } from '@nestjs/typeorm';
 import { Property } from '@opensearch-project/opensearch/api/_types/_common.mapping.js';
 import { Bulk_RequestBody, Indices_Create_Request } from '@opensearch-project/opensearch/api/index.js';
 import { Client } from 'pg';
@@ -8,20 +9,39 @@ import { EnvConfig } from 'src/config/common/types';
 import { LokiLogger } from 'src/libs/logger';
 import { EOpenSearchIndexType } from 'src/libs/opensearch/common/enums';
 import { OpenSearchService } from 'src/libs/opensearch/services';
-import { IRawPerson, ITransformedPerson } from 'src/modules/external-sync/common/interfaces';
+import {
+  IRawPerson,
+  ITransformedDeceasedSubscription,
+  ITransformedPerson,
+} from 'src/modules/external-sync/common/interfaces';
+import { Deceased } from 'src/modules/deceased/entities';
+import { Repository } from 'typeorm';
+import { ESortOrder } from 'src/common/enums';
 
 @Injectable()
 export class ExternalSyncService {
   private readonly lokiLogger = new LokiLogger(ExternalSyncService.name);
 
   constructor(
+    @InjectRepository(Deceased)
+    private readonly deceasedRepository: Repository<Deceased>,
     private readonly configService: ConfigService<EnvConfig>,
     private readonly searchService: OpenSearchService,
   ) {}
 
   public async seedData(): Promise<void> {
     await this.initializePeopleIndex();
+
+    const count = await this.searchService.count({ index: EOpenSearchIndexType.PEOPLE });
+
+    if (count.count > 0) {
+      this.lokiLogger.log(`Index ${EOpenSearchIndexType.PEOPLE} already contains ${count.count} documents`);
+
+      return;
+    }
+
     await this.seedMemoryData();
+    await this.seedCityData();
   }
 
   private async initializePeopleIndex(): Promise<void> {
@@ -74,6 +94,12 @@ export class ExternalSyncService {
             deathMonth: integerProperty,
             deathDay: integerProperty,
             fileKey: keywordProperty,
+            deceasedSubscriptions: {
+              type: 'nested',
+              properties: {
+                id: keywordProperty,
+              },
+            },
           },
         },
         settings: {
@@ -115,29 +141,26 @@ export class ExternalSyncService {
 
   private async seedMemoryData(): Promise<void> {
     try {
-      const count = await this.searchService.count({ index: EOpenSearchIndexType.PEOPLE });
+      this.lokiLogger.log('Seeding people data from memory...');
 
-      if (count.count > 0) {
-        this.lokiLogger.log(`Index ${EOpenSearchIndexType.PEOPLE} already contains ${count.count} documents`);
-
-        return;
-      }
-
-      this.lokiLogger.log('Seeding people data...');
       const people = await this.generateMemoryDatasets();
-
-      const bulkBody: Bulk_RequestBody = people.flatMap((person) => [
-        { index: { _index: EOpenSearchIndexType.PEOPLE, _id: person.id } },
-        {
-          ...person,
-          fullName: `${person.lastName} ${person.firstName} ${person.middleName || ''}`.trim(),
-        },
-      ]);
-
-      await this.searchService.bulk({ body: bulkBody });
-      this.lokiLogger.log(`Successfully seeded ${people.length} people records`);
+      await this.bulkIndexPeople(people);
+      this.lokiLogger.log(`Successfully seeded ${people.length} people records from memory`);
     } catch (error) {
-      this.lokiLogger.error('Failed to seed people data:', (error as Error).message);
+      this.lokiLogger.error('Failed to seed people data from memory:', (error as Error).message);
+      throw error;
+    }
+  }
+
+  private async seedCityData(): Promise<void> {
+    try {
+      this.lokiLogger.log('Seeding people data from city...');
+
+      const people = await this.generateCityDatasets();
+      await this.bulkIndexPeople(people);
+      this.lokiLogger.log(`Successfully seeded ${people.length} people records from city`);
+    } catch (error) {
+      this.lokiLogger.error('Failed to seed people data from city:', (error as Error).message);
       throw error;
     }
   }
@@ -331,8 +354,94 @@ export class ExternalSyncService {
       deathMonth: deathMonth,
       deathDay: deathDay,
       fileKey: fileKey,
+      deceasedSubscriptions: [],
     };
 
     return transformedPerson;
+  }
+
+  public async generateCityDatasets(): Promise<ITransformedPerson[]> {
+    const MAX_SUBSCRIPTIONS_PREVIEW = 3;
+
+    const deceased = await this.deceasedRepository.find({
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        middleName: true,
+        birthDay: true,
+        birthMonth: true,
+        birthYear: true,
+        birthDate: true,
+        deathDay: true,
+        deathMonth: true,
+        deathYear: true,
+        deathDate: true,
+        graveLocation: {
+          id: true,
+          latitude: true,
+          longitude: true,
+          altitude: true,
+          cemetery: { id: true, name: true, address: { id: true, region: true } },
+        },
+        deceasedSubscriptions: { id: true, creationDate: true },
+      },
+      relations: { graveLocation: { cemetery: { address: true } }, deceasedSubscriptions: true },
+      order: { deceasedSubscriptions: { creationDate: ESortOrder.DESC } },
+    });
+
+    const transformedData: ITransformedPerson[] = [];
+    for (const deceasedRow of deceased) {
+      const { graveLocation, deceasedSubscriptions } = deceasedRow;
+      const subscriptions: ITransformedDeceasedSubscription[] = deceasedSubscriptions
+        .slice(0, MAX_SUBSCRIPTIONS_PREVIEW)
+        .map((subscription) => ({
+          id: subscription.id,
+        }));
+
+      const transformedPerson: ITransformedPerson = {
+        id: deceasedRow.id,
+        originalId: null,
+        gpsLatitude: graveLocation?.latitude ?? null,
+        gpsAltitude: graveLocation?.altitude ?? null,
+        gpsLongitude: graveLocation?.longitude ?? null,
+        cemeteryLabel: graveLocation?.cemetery.name ?? null,
+        regionLabel: graveLocation?.cemetery?.address?.region ?? null,
+        regionLabelFull: graveLocation?.cemetery?.address?.region ?? null,
+        genderCode: null,
+        firstName: deceasedRow.firstName,
+        lastName: deceasedRow.lastName,
+        middleName: deceasedRow.middleName,
+        birthDate: deceasedRow.birthDate,
+        deathDate: deceasedRow.deathDate,
+        birthYear: deceasedRow.birthYear,
+        birthMonth: deceasedRow.birthMonth,
+        birthDay: deceasedRow.birthDay,
+        deathYear: deceasedRow.deathYear,
+        deathMonth: deceasedRow.deathMonth,
+        deathDay: deceasedRow.deathDay,
+        fileKey: null,
+        deceasedSubscriptions: subscriptions,
+      };
+      transformedData.push(transformedPerson);
+    }
+
+    return transformedData;
+  }
+
+  private async bulkIndexPeople(transformedData: ITransformedPerson[]): Promise<void> {
+    if (transformedData.length === 0) {
+      return;
+    }
+
+    const bulkBody: Bulk_RequestBody = transformedData.flatMap((person) => [
+      { index: { _index: EOpenSearchIndexType.PEOPLE, _id: person.id } },
+      {
+        ...person,
+        fullName: `${person.lastName} ${person.firstName} ${person.middleName || ''}`.trim(),
+      },
+    ]);
+
+    await this.searchService.bulk({ body: bulkBody });
   }
 }

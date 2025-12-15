@@ -3,6 +3,7 @@ import { UserProfile, UserRole } from 'src/modules/users/entities';
 import { ComplaintForm } from 'src/modules/complaint-form/entities';
 import { EntitySchema } from 'typeorm';
 import { DeceasedSubscription } from 'src/modules/deceased/entities';
+import { DeceasedCorrection } from 'src/modules/deceased-correction/entities';
 
 export interface User {
   id: string;
@@ -12,6 +13,7 @@ export interface User {
   deceasedSubscriptions: DeceasedSubscription[];
   complaintsReported: ComplaintForm[];
   complaintsReceived: ComplaintForm[];
+  deceasedCorrections: DeceasedCorrection[];
   email: string | null;
   isEmailVerified: boolean;
   passwordHash: string | null;
@@ -97,6 +99,11 @@ export const User = new EntitySchema<User>({
       type: 'one-to-many',
       target: 'ComplaintForm',
       inverseSide: 'subjectUser',
+    },
+    deceasedCorrections: {
+      type: 'one-to-many',
+      target: 'DeceasedCorrection',
+      inverseSide: 'user',
     },
   },
 });

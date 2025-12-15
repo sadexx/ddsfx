@@ -11,7 +11,6 @@ import { Deceased, DeceasedSubscription } from 'src/modules/deceased/entities';
 export type TGetDeceasedProfile = Pick<
   Deceased,
   | 'id'
-  | 'biography'
   | 'firstName'
   | 'lastName'
   | 'middleName'
@@ -54,7 +53,7 @@ export type TCreateDeceasedProfileCemetery = QueryResultType<
 export const UpdateDeceasedProfileQuery = {
   select: {
     id: true,
-    biography: true,
+    originalId: true,
     firstName: true,
     lastName: true,
     middleName: true,

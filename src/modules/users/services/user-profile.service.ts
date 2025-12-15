@@ -39,7 +39,7 @@ export class UserProfileService {
   public async updateUserProfile(dto: UpdateUserProfileDto, user: ITokenUserPayload): Promise<void> {
     const userProfile = await findOneOrFailTyped<TUpdateUserProfile>(user.sub, this.userProfileRepository, {
       select: UpdateUserProfileQuery.select,
-      where: { id: user.sub },
+      where: { user: { id: user.sub } },
     });
     await this.updateProfile(dto, userProfile);
   }
@@ -74,7 +74,7 @@ export class UserProfileService {
     return {
       firstName: dto.firstName,
       lastName: dto.lastName,
-      middleName: dto.middleName,
+      middleName: dto.middleName ?? null,
       user,
     };
   }

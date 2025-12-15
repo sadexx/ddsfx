@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { CreateDeceasedProfileDto, UpdateDeceasedProfileDto } from 'src/modules/deceased/common/dto';
 import { Cemetery } from 'src/modules/cemetery/entities';
 import { DataSource, EntityManager, FindOneOptions, Repository } from 'typeorm';
-import { findOneOrFailQueryBuilderTyped, findOneOrFailTyped } from 'src/common/utils/find-one-typed';
+import { findOneOrFailTyped, findOneQueryBuilderTyped } from 'src/common/utils/find-one-typed';
 import { IDeceased } from 'src/modules/deceased/common/interfaces';
 import { EDeceasedStatus } from 'src/modules/deceased/common/enums';
 import { CemeteryService } from 'src/modules/cemetery/services';
@@ -18,12 +18,14 @@ import { ITokenUserPayload } from 'src/libs/tokens/common/interfaces';
 import {
   DeceasedQueryOptionsService,
   DeceasedSubscriptionService,
+  DeceasedSyncService,
   DeceasedValidationService,
 } from 'src/modules/deceased/services';
 import { User } from 'src/modules/users/entities';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UUIDParamDto } from 'src/common/dto';
 import { buildDate } from 'src/modules/deceased/common/helpers';
+import { ICreateDeceasedProfileOutput } from 'src/modules/deceased/common/outputs';
 
 @Injectable()
 export class DeceasedService {
@@ -38,29 +40,33 @@ export class DeceasedService {
     private readonly deceasedValidationService: DeceasedValidationService,
     private readonly deceasedSubscriptionService: DeceasedSubscriptionService,
     private readonly cemeteryService: CemeteryService,
+    private readonly deceasedSyncService: DeceasedSyncService,
     private readonly dataSource: DataSource,
   ) {}
 
-  public async getDeceasedProfile(param: UUIDParamDto, user: ITokenUserPayload): Promise<TGetDeceasedProfile> {
+  public async getDeceasedProfile(param: UUIDParamDto, user: ITokenUserPayload): Promise<TGetDeceasedProfile | null> {
     const queryBuilder = this.deceasedRepository.createQueryBuilder('deceased');
     this.deceasedQueryOptions.getDeceasedProfileOptions(queryBuilder, param.id, user.sub);
-    const deceased = await findOneOrFailQueryBuilderTyped<TGetDeceasedProfile>(
-      param.id,
-      queryBuilder,
-      Deceased.options.name,
-    );
+    const deceased = await findOneQueryBuilderTyped<TGetDeceasedProfile>(queryBuilder);
 
     return deceased;
   }
 
-  public async createDeceasedProfile(dto: CreateDeceasedProfileDto, user: ITokenUserPayload): Promise<void> {
+  public async createDeceasedProfile(
+    dto: CreateDeceasedProfileDto,
+    user: ITokenUserPayload,
+  ): Promise<ICreateDeceasedProfileOutput> {
     const { currentUser, cemetery } = await this.loadDeceasedProfileCreateEntities(user.sub, dto.cemeteryId);
 
     this.deceasedValidationService.validateDeceasedProfileCreate(currentUser);
 
-    await this.dataSource.transaction(async (manager) => {
-      await this.constructAndCreateDeceasedProfile(manager, dto, currentUser, cemetery);
+    const deceased = await this.dataSource.transaction(async (manager) => {
+      return await this.constructAndCreateDeceasedProfile(manager, dto, currentUser, cemetery);
     });
+
+    await this.deceasedSyncService.indexDeceased(deceased.id);
+
+    return { id: deceased.id };
   }
 
   public async updateDeceasedProfile(
@@ -77,6 +83,8 @@ export class DeceasedService {
     await this.dataSource.transaction(async (manager) => {
       await this.updateDeceased(manager, dto, deceased, cemetery);
     });
+
+    await this.deceasedSyncService.updateDeceasedIndex(deceased.id);
   }
 
   private async loadDeceasedProfileCreateEntities(
@@ -123,7 +131,7 @@ export class DeceasedService {
     dto: CreateDeceasedProfileDto,
     user: TCreateDeceasedProfileUser,
     cemetery: TCreateDeceasedProfileCemetery | null,
-  ): Promise<void> {
+  ): Promise<Deceased> {
     const deceasedDto = this.constructCreateDeceasedProfileDto(dto);
     const savedDeceased = await this.createDeceased(manager, deceasedDto);
 
@@ -137,6 +145,8 @@ export class DeceasedService {
     if (cemetery) {
       await this.cemeteryService.constructAndCreateGraveLocation(manager, cemetery, savedDeceased, dto.graveLocation);
     }
+
+    return savedDeceased;
   }
 
   private async createDeceased(manager: EntityManager, dto: IDeceased): Promise<Deceased> {
@@ -163,10 +173,10 @@ export class DeceasedService {
   private constructCreateDeceasedProfileDto(dto: CreateDeceasedProfileDto): IDeceased {
     return {
       status: EDeceasedStatus.PENDING,
+      originalId: null,
       firstName: dto.firstName ?? null,
       lastName: dto.lastName ?? null,
       middleName: dto.middleName ?? null,
-      biography: dto.biography ?? null,
       deathDay: dto.deathDay ?? null,
       deathMonth: dto.deathMonth ?? null,
       deathYear: dto.deathYear ?? null,
@@ -195,10 +205,10 @@ export class DeceasedService {
 
     return {
       status: existingDeceased.status,
+      originalId: existingDeceased.originalId,
       firstName: dto.firstName ?? existingDeceased.firstName,
       lastName: dto.lastName ?? existingDeceased.lastName,
       middleName: dto.middleName ?? existingDeceased.middleName,
-      biography: dto.biography ?? existingDeceased.biography,
       deathDay: dto.deathDay ?? existingDeceased.deathDay,
       deathMonth: dto.deathMonth ?? existingDeceased.deathMonth,
       deathYear: dto.deathYear ?? existingDeceased.deathYear,

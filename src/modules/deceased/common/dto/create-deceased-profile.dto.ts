@@ -8,7 +8,6 @@ export class CreateDeceasedProfileDto {
   firstName?: string;
   lastName?: string;
   middleName?: string;
-  biography?: string;
   deathDay?: number;
   deathMonth?: number;
   deathYear?: number;
@@ -24,7 +23,6 @@ export class CreateDeceasedProfileDto {
       firstName: Type.Optional(StandardStringPattern),
       lastName: Type.Optional(StandardStringPattern),
       middleName: Type.Optional(StandardStringPattern),
-      biography: Type.Optional(StandardStringPattern),
       deathDay: Type.Optional(DayPattern),
       deathMonth: Type.Optional(MonthPattern),
       deathYear: Type.Optional(YearPattern),

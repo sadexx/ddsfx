@@ -8,6 +8,7 @@ import { CurrentUser } from 'src/common/decorators';
 import { RouteSchema } from '@nestjs/platform-fastify';
 import { UUIDParamDto } from 'src/common/dto';
 import { TGetDeceasedProfile } from 'src/modules/deceased/common/types';
+import { ICreateDeceasedProfileOutput } from 'src/modules/deceased/common/outputs';
 
 @Controller('deceased')
 export class DeceasedController {
@@ -15,10 +16,11 @@ export class DeceasedController {
 
   @UseGuards(JwtFullAccessGuard)
   @Get('profile/:id')
+  @RouteSchema({ params: UUIDParamDto.schema })
   async getDeceasedProfile(
     @Param() param: UUIDParamDto,
     @CurrentUser() user: ITokenUserPayload,
-  ): Promise<TGetDeceasedProfile> {
+  ): Promise<TGetDeceasedProfile | null> {
     return this.deceasedService.getDeceasedProfile(param, user);
   }
 
@@ -28,14 +30,14 @@ export class DeceasedController {
   async createDeceasedProfile(
     @Body(ValidateAndTransformPipe) dto: CreateDeceasedProfileDto,
     @CurrentUser() user: ITokenUserPayload,
-  ): Promise<void> {
+  ): Promise<ICreateDeceasedProfileOutput> {
     return this.deceasedService.createDeceasedProfile(dto, user);
   }
 
   @UseGuards(JwtFullAccessGuard)
   @UsePipes(NotEmptyBodyPipe)
   @Patch('profile/:id')
-  @RouteSchema({ body: UpdateDeceasedProfileDto.schema })
+  @RouteSchema({ body: UpdateDeceasedProfileDto.schema, params: UUIDParamDto.schema })
   async updateDeceasedProfile(
     @Param() param: UUIDParamDto,
     @Body() dto: UpdateDeceasedProfileDto,

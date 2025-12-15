@@ -6,7 +6,7 @@ export interface UserProfile {
   user: User;
   firstName: string;
   lastName: string;
-  middleName: string;
+  middleName: string | null;
   creationDate: Date;
   updatingDate: Date;
 }
@@ -33,6 +33,7 @@ export const UserProfile = new EntitySchema<UserProfile>({
     middleName: {
       type: 'varchar',
       name: 'middle_name',
+      nullable: true,
     },
     creationDate: {
       type: 'timestamptz',

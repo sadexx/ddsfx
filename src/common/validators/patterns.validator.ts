@@ -77,3 +77,11 @@ export const YearPattern = Type.Number({
   maximum: 2100,
   description: 'Year (4 digits)',
 });
+
+export const UrlPattern = Type.String({
+  format: 'uri',
+  minLength: 5,
+  maxLength: 2048,
+  pattern: '^(https?:\\/\\/)([\\w-]+\\.)+[\\w-]+(\\/[^\\s]*)?$',
+  description: 'HTTP or HTTPS URL',
+});

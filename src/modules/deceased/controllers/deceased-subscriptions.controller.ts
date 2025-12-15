@@ -3,7 +3,11 @@ import { JwtFullAccessGuard } from 'src/libs/guards/common/guards';
 import { DeceasedSubscriptionService } from 'src/modules/deceased/services';
 import { RouteSchema } from '@nestjs/platform-fastify';
 import { PaginationQueryDto, UUIDParamDto } from 'src/common/dto';
-import { TGetDeceasedSubscription, TGetDeceasedSubscriptions } from 'src/modules/deceased/common/types';
+import {
+  TGetDeceasedSubscription,
+  TGetDeceasedSubscriptions,
+  TGetMyDeceasedSubscriptions,
+} from 'src/modules/deceased/common/types';
 import { PaginationOutput } from 'src/common/outputs';
 import { CurrentUser } from 'src/common/decorators';
 import { CreateDeceasedSubscriptionDto } from 'src/modules/deceased/common/dto';
@@ -14,8 +18,14 @@ export class DeceasedSubscriptionsController {
   constructor(private readonly deceasedSubscriptions: DeceasedSubscriptionService) {}
 
   @UseGuards(JwtFullAccessGuard)
+  @Get()
+  async getMyDeceasedSubscriptions(@CurrentUser() user: ITokenUserPayload): Promise<TGetMyDeceasedSubscriptions[]> {
+    return this.deceasedSubscriptions.getMyDeceasedSubscriptions(user);
+  }
+
+  @UseGuards(JwtFullAccessGuard)
   @Get('/deceased/:id')
-  @RouteSchema({ querystring: PaginationQueryDto.schema })
+  @RouteSchema({ querystring: PaginationQueryDto.schema, params: UUIDParamDto.schema })
   async getDeceasedSubscriptions(
     @Param() param: UUIDParamDto,
     @Query() dto: PaginationQueryDto,
@@ -25,12 +35,13 @@ export class DeceasedSubscriptionsController {
 
   @UseGuards(JwtFullAccessGuard)
   @Get(':id')
+  @RouteSchema({ params: UUIDParamDto.schema })
   async getDeceasedSubscription(@Param() param: UUIDParamDto): Promise<TGetDeceasedSubscription> {
     return this.deceasedSubscriptions.getDeceasedSubscription(param);
   }
 
   @UseGuards(JwtFullAccessGuard)
-  @RouteSchema({ body: CreateDeceasedSubscriptionDto.schema })
+  @RouteSchema({ body: CreateDeceasedSubscriptionDto.schema, params: UUIDParamDto.schema })
   @Post(':id')
   async subscribeDeceasedProfile(
     @Param() param: UUIDParamDto,
@@ -42,6 +53,7 @@ export class DeceasedSubscriptionsController {
 
   @UseGuards(JwtFullAccessGuard)
   @Delete(':id')
+  @RouteSchema({ params: UUIDParamDto.schema })
   async unsubscribeDeceasedProfile(
     @Param() param: UUIDParamDto,
     @CurrentUser() user: ITokenUserPayload,

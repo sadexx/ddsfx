@@ -4,6 +4,7 @@ import {
   DeceasedQueryOptionsService,
   DeceasedService,
   DeceasedSubscriptionService,
+  DeceasedSyncService,
   DeceasedValidationService,
 } from 'src/modules/deceased/services';
 import { CemeteryModule } from 'src/modules/cemetery/cemetery.module';
@@ -15,7 +16,13 @@ import { Deceased, DeceasedSubscription } from 'src/modules/deceased/entities';
 @Module({
   imports: [TypeOrmModule.forFeature([Deceased, DeceasedSubscription, User, Cemetery]), CemeteryModule],
   controllers: [DeceasedController, DeceasedSubscriptionsController],
-  providers: [DeceasedService, DeceasedSubscriptionService, DeceasedQueryOptionsService, DeceasedValidationService],
+  providers: [
+    DeceasedService,
+    DeceasedSubscriptionService,
+    DeceasedQueryOptionsService,
+    DeceasedValidationService,
+    DeceasedSyncService,
+  ],
   exports: [DeceasedSubscriptionService],
 })
 export class DeceasedModule {}
