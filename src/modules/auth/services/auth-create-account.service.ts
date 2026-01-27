@@ -61,6 +61,7 @@ export class AuthCreateAccountService {
       passwordHash: dto.password,
       phoneNumber: dto.phoneNumber,
       isPhoneNumberVerified: dto.isVerifiedPhoneNumber,
+      registrationStrategy: dto.authProvider,
     });
 
     return await this.userRepository.save(newUser);

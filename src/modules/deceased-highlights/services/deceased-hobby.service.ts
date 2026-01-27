@@ -63,7 +63,7 @@ export class DeceasedHobbyService {
     const deceased = await findOneOrFailTyped<TCreateDeceasedHobby>(param.id, this.deceasedRepository, queryOptions);
 
     await this.deceasedSubscriptionService.ensureDeceasedSubscription(user.sub, param.id);
-    await this.deceasedHighlightsValidationService.validateCreateDeceasedHobby(dto, deceased.id);
+    await this.deceasedHighlightsValidationService.validateCreateDeceasedHobby(dto, deceased);
 
     await this.constructAndCreateDeceasedHobby(dto, deceased);
   }

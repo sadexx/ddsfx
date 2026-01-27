@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { DeceasedCorrection } from 'src/modules/deceased-correction/entities';
 import { CreateDeceasedCorrectionDto } from 'src/modules/deceased-correction/common/dto';
-import { IMessageOutput } from 'src/common/outputs';
+import { MessageOutput } from 'src/common/outputs';
 import { Deceased } from 'src/modules/deceased/entities';
 import { ITokenUserPayload } from 'src/libs/tokens/common/interfaces';
 import { ESortOrder } from 'src/common/enums';
@@ -31,7 +31,7 @@ export class DeceasedCorrectionService {
   public async createDeceasedCorrection(
     user: ITokenUserPayload,
     dto: CreateDeceasedCorrectionDto,
-  ): Promise<IMessageOutput> {
+  ): Promise<MessageOutput> {
     const deceased = await this.deceasedRepository.exists({
       where: { id: dto.deceasedId },
     });

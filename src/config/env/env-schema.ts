@@ -188,6 +188,36 @@ const validationRules: TConfigRules<EnvConfig> = {
     validate: validators.requiredString,
     transform: transforms.string,
   },
+  EMAIL_HOST: {
+    required: true,
+    validate: validators.requiredString,
+    transform: transforms.string,
+  },
+  EMAIL_PORT: {
+    required: true,
+    validate: validators.numericString,
+    transform: transforms.number,
+  },
+  EMAIL_AUTHOR: {
+    required: true,
+    validate: validators.requiredString,
+    transform: transforms.string,
+  },
+  EMAIL_AUTHOR_NAME: {
+    required: true,
+    validate: validators.requiredString,
+    transform: transforms.string,
+  },
+  EMAIL_USER: {
+    required: true,
+    validate: validators.requiredString,
+    transform: transforms.string,
+  },
+  EMAIL_PASSWORD: {
+    required: true,
+    validate: validators.requiredString,
+    transform: transforms.string,
+  },
   APPLE_CLIENT_ID: {
     required: true,
     validate: validators.requiredString,
@@ -196,6 +226,21 @@ const validationRules: TConfigRules<EnvConfig> = {
   GOOGLE_OAUTH2_CLIENT_ID: {
     required: true,
     validate: validators.requiredString,
+    transform: transforms.string,
+  },
+  MOCK_ENABLED: {
+    required: true,
+    validate: validators.boolean,
+    transform: transforms.boolean,
+  },
+  MOCK_EMAILS: {
+    required: false,
+    validate: validators.optionalString,
+    transform: transforms.string,
+  },
+  MOCK_PHONES: {
+    required: false,
+    validate: validators.optionalString,
     transform: transforms.string,
   },
 };

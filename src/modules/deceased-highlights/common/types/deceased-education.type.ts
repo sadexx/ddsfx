@@ -25,7 +25,9 @@ export type TGetDeceasedEducations = QueryResultType<DeceasedEducation, typeof G
 export const CreateDeceasedEducationsQuery = {
   select: {
     id: true,
+    deceasedEducations: { id: true },
   } as const satisfies FindOptionsSelect<Deceased>,
+  relations: { deceasedEducations: true } as const satisfies FindOptionsRelations<Deceased>,
 };
 export type TCreateDeceasedEducations = QueryResultType<Deceased, typeof CreateDeceasedEducationsQuery.select>;
 

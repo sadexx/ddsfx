@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { FindManyOptions, FindOneOptions, In } from 'typeorm';
 import { Deceased } from 'src/modules/deceased/entities';
 import {
+  CreateDeceasedBiographyQuery,
   CreateDeceasedEducationsQuery,
   CreateDeceasedEmploymentsQuery,
   CreateDeceasedHobbyQuery,
@@ -14,11 +15,13 @@ import {
   GetDeceasedHobbyTagsQuery,
   GetDeceasedResidencesQuery,
   GetDeceasedSocialMediaLinksQuery,
+  RemoveDeceasedBiographyQuery,
   RemoveDeceasedEducationQuery,
   RemoveDeceasedEmploymentQuery,
   RemoveDeceasedHobbyQuery,
   RemoveDeceasedResidenceQuery,
   RemoveDeceasedSocialMediaLinkQuery,
+  UpdateDeceasedBiographyQuery,
   UpdateDeceasedEducationQuery,
   UpdateDeceasedEmploymentQuery,
   UpdateDeceasedHobbyQuery,
@@ -35,7 +38,6 @@ import {
   DeceasedResidence,
   DeceasedSocialMediaLink,
 } from 'src/modules/deceased-highlights/entities';
-import { EDeceasedSocialMediaLinkPlatform } from 'src/modules/deceased-highlights/common/enums';
 
 @Injectable()
 export class DeceasedHighLightsQueryOptionsService {
@@ -54,6 +56,7 @@ export class DeceasedHighLightsQueryOptionsService {
     return {
       select: CreateDeceasedResidencesQuery.select,
       where: { id: deceasedId },
+      relations: CreateDeceasedResidencesQuery.relations,
     };
   }
 
@@ -88,6 +91,7 @@ export class DeceasedHighLightsQueryOptionsService {
     return {
       select: CreateDeceasedEducationsQuery.select,
       where: { id: deceasedId },
+      relations: CreateDeceasedEducationsQuery.relations,
     };
   }
 
@@ -122,6 +126,7 @@ export class DeceasedHighLightsQueryOptionsService {
     return {
       select: CreateDeceasedEmploymentsQuery.select,
       where: { id: deceasedId },
+      relations: CreateDeceasedEmploymentsQuery.relations,
     };
   }
 
@@ -164,6 +169,7 @@ export class DeceasedHighLightsQueryOptionsService {
     return {
       select: CreateDeceasedHobbyQuery.select,
       where: { id: deceasedId },
+      relations: CreateDeceasedHobbyQuery.relations,
     };
   }
 
@@ -196,8 +202,25 @@ export class DeceasedHighLightsQueryOptionsService {
 
   public createDeceasedBiographyOptions(deceasedId: string): FindOneOptions<Deceased> {
     return {
-      select: CreateDeceasedResidencesQuery.select,
+      select: CreateDeceasedBiographyQuery.select,
       where: { id: deceasedId },
+      relations: CreateDeceasedBiographyQuery.relations,
+    };
+  }
+
+  public updateDeceasedBiographyOptions(deceasedBiographyId: string): FindOneOptions<DeceasedBiography> {
+    return {
+      select: UpdateDeceasedBiographyQuery.select,
+      where: { id: deceasedBiographyId },
+      relations: UpdateDeceasedBiographyQuery.relations,
+    };
+  }
+
+  public removeDeceasedBiographyOptions(deceasedBiographyId: string): FindOneOptions<DeceasedBiography> {
+    return {
+      select: RemoveDeceasedBiographyQuery.select,
+      where: { id: deceasedBiographyId },
+      relations: RemoveDeceasedBiographyQuery.relations,
     };
   }
 
@@ -216,6 +239,7 @@ export class DeceasedHighLightsQueryOptionsService {
     return {
       select: CreateDeceasedSocialMediaLinkQuery.select,
       where: { id: deceasedId },
+      relations: CreateDeceasedSocialMediaLinkQuery.relations,
     };
   }
 
@@ -255,15 +279,6 @@ export class DeceasedHighLightsQueryOptionsService {
   public ensureHobbyTagsExistOptions(tagIds: string[]): FindManyOptions<DeceasedHobbyTag> {
     return {
       where: { id: In(tagIds) },
-    };
-  }
-
-  public validateCreateDeceasedSocialMediaLinksOptions(
-    deceasedId: string,
-    platform: EDeceasedSocialMediaLinkPlatform,
-  ): FindManyOptions<DeceasedSocialMediaLink> {
-    return {
-      where: { deceased: { id: deceasedId }, platform },
     };
   }
 }

@@ -60,7 +60,7 @@ export class DeceasedSocialMediaLinkService {
     );
 
     await this.deceasedSubscriptionService.ensureDeceasedSubscription(user.sub, param.id);
-    await this.deceasedHighlightsValidationService.validateCreateDeceasedSocialMediaLink(dto, deceased.id);
+    this.deceasedHighlightsValidationService.validateCreateDeceasedSocialMediaLink(dto, deceased);
 
     await this.constructAndCreateDeceasedSocialMediaLink(dto, deceased);
   }

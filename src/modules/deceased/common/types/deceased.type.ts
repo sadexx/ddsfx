@@ -2,7 +2,8 @@ import { FindOptionsRelations, FindOptionsSelect } from 'typeorm';
 import { QueryResultType } from 'src/common/types';
 import { Cemetery, GraveLocation } from 'src/modules/cemetery/entities';
 import { User } from 'src/modules/users/entities';
-import { Deceased, DeceasedSubscription } from 'src/modules/deceased/entities';
+import { Deceased, DeceasedMediaContent, DeceasedSubscription } from 'src/modules/deceased/entities';
+import { File } from 'src/libs/file-management/entities';
 
 /**
  ** Types
@@ -25,6 +26,9 @@ export type TGetDeceasedProfile = Pick<
   cemetery: Pick<Cemetery, 'id' | 'name'> | null;
   graveLocation: Pick<GraveLocation, 'id' | 'latitude' | 'longitude' | 'altitude'> | null;
   deceasedSubscriptions: Pick<DeceasedSubscription, 'id'>[];
+  deceasedMediaContents: (Pick<DeceasedMediaContent, 'id' | 'memoryFileKey'> & {
+    file: Pick<File, 'id' | 'fileKey'> | null;
+  })[];
 };
 
 /**

@@ -25,7 +25,7 @@ import { User } from 'src/modules/users/entities';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UUIDParamDto } from 'src/common/dto';
 import { buildDate } from 'src/modules/deceased/common/helpers';
-import { ICreateDeceasedProfileOutput } from 'src/modules/deceased/common/outputs';
+import { EntityIdOutput } from 'src/common/outputs';
 
 @Injectable()
 export class DeceasedService {
@@ -52,10 +52,7 @@ export class DeceasedService {
     return deceased;
   }
 
-  public async createDeceasedProfile(
-    dto: CreateDeceasedProfileDto,
-    user: ITokenUserPayload,
-  ): Promise<ICreateDeceasedProfileOutput> {
+  public async createDeceasedProfile(dto: CreateDeceasedProfileDto, user: ITokenUserPayload): Promise<EntityIdOutput> {
     const { currentUser, cemetery } = await this.loadDeceasedProfileCreateEntities(user.sub, dto.cemeteryId);
 
     this.deceasedValidationService.validateDeceasedProfileCreate(currentUser);
@@ -208,13 +205,13 @@ export class DeceasedService {
       originalId: existingDeceased.originalId,
       firstName: dto.firstName ?? existingDeceased.firstName,
       lastName: dto.lastName ?? existingDeceased.lastName,
-      middleName: dto.middleName ?? existingDeceased.middleName,
-      deathDay: dto.deathDay ?? existingDeceased.deathDay,
-      deathMonth: dto.deathMonth ?? existingDeceased.deathMonth,
-      deathYear: dto.deathYear ?? existingDeceased.deathYear,
-      birthDay: dto.birthDay ?? existingDeceased.birthDay,
-      birthMonth: dto.birthMonth ?? existingDeceased.birthMonth,
-      birthYear: dto.birthYear ?? existingDeceased.birthYear,
+      middleName: dto.middleName !== undefined ? dto.middleName : existingDeceased.middleName,
+      deathDay: dto.deathDay !== undefined ? dto.deathDay : existingDeceased.deathDay,
+      deathMonth: dto.deathMonth !== undefined ? dto.deathMonth : existingDeceased.deathMonth,
+      deathYear: dto.deathYear !== undefined ? dto.deathYear : existingDeceased.deathYear,
+      birthDay: dto.birthDay !== undefined ? dto.birthDay : existingDeceased.birthDay,
+      birthMonth: dto.birthMonth !== undefined ? dto.birthMonth : existingDeceased.birthMonth,
+      birthYear: dto.birthYear !== undefined ? dto.birthYear : existingDeceased.birthYear,
       deathDate: determinedDeathDate ?? existingDeceased.deathDate,
       birthDate: determinedBirthDate ?? existingDeceased.birthDate,
     };

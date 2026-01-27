@@ -4,8 +4,8 @@ import { Deceased } from 'src/modules/deceased/entities';
 export interface DeceasedEmployment {
   id: string;
   deceased: Deceased;
-  position: string;
-  companyName: string | null;
+  companyName: string;
+  position: string | null;
   description: string | null;
   startYear: number | null;
   endYear: number | null;
@@ -24,13 +24,13 @@ export const DeceasedEmployment = new EntitySchema<DeceasedEmployment>({
       primaryKeyConstraintName: 'PK_deceased_employments',
       default: (): string => 'uuidv7()',
     },
-    position: {
-      type: 'varchar',
-      name: 'position',
-    },
     companyName: {
       type: 'varchar',
       name: 'company_name',
+    },
+    position: {
+      type: 'varchar',
+      name: 'position',
       nullable: true,
     },
     description: {

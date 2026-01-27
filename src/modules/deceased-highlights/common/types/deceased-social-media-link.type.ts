@@ -22,7 +22,9 @@ export type TGetDeceasedSocialMediaLinks = QueryResultType<
 export const CreateDeceasedSocialMediaLinkQuery = {
   select: {
     id: true,
+    deceasedSocialMediaLinks: { platform: true },
   } as const satisfies FindOptionsSelect<Deceased>,
+  relations: { deceasedSocialMediaLinks: true } as const satisfies FindOptionsRelations<Deceased>,
 };
 export type TCreateDeceasedSocialMediaLink = QueryResultType<
   Deceased,

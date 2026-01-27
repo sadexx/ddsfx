@@ -5,24 +5,27 @@ import { EDeceasedEducationType } from 'src/modules/deceased-highlights/common/e
 
 export class UpdateDeceasedEducationDto {
   type?: EDeceasedEducationType;
-  city?: string;
   institutionName?: string;
-  country?: string;
-  specialization?: string;
-  description?: string;
-  startYear?: number;
-  endYear?: number;
+  city?: string | null;
+  country?: string | null;
+  specialization?: string | null;
+  description?: string | null;
+  startYear?: number | null;
+  endYear?: number | null;
 
-  static readonly schema = Type.Object({
-    type: Type.Optional(Type.Enum(EDeceasedEducationType)),
-    city: Type.Optional(StandardStringPattern),
-    institutionName: Type.Optional(StandardStringPattern),
-    country: Type.Optional(StandardStringPattern),
-    specialization: Type.Optional(StandardStringPattern),
-    description: Type.Optional(StandardStringPattern),
-    startYear: Type.Optional(YearPattern),
-    endYear: Type.Optional(YearPattern),
-  });
+  static readonly schema = Type.Object(
+    {
+      type: Type.Optional(Type.Enum(EDeceasedEducationType)),
+      institutionName: Type.Optional(StandardStringPattern),
+      city: Type.Optional(Type.Union([StandardStringPattern, Type.Null()])),
+      country: Type.Optional(Type.Union([StandardStringPattern, Type.Null()])),
+      specialization: Type.Optional(Type.Union([StandardStringPattern, Type.Null()])),
+      description: Type.Optional(Type.Union([StandardStringPattern, Type.Null()])),
+      startYear: Type.Optional(Type.Union([YearPattern, Type.Null()])),
+      endYear: Type.Optional(Type.Union([YearPattern, Type.Null()])),
+    },
+    { additionalProperties: false },
+  );
 
   static validate(data: UpdateDeceasedEducationDto): void {
     if (data.startYear && data.endYear && data.startYear > data.endYear) {

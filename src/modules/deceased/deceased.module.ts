@@ -1,6 +1,11 @@
 import { Module } from '@nestjs/common';
-import { DeceasedController, DeceasedSubscriptionsController } from 'src/modules/deceased/controllers';
 import {
+  DeceasedController,
+  DeceasedMediaContentController,
+  DeceasedSubscriptionsController,
+} from 'src/modules/deceased/controllers';
+import {
+  DeceasedMediaContentService,
   DeceasedQueryOptionsService,
   DeceasedService,
   DeceasedSubscriptionService,
@@ -11,18 +16,24 @@ import { CemeteryModule } from 'src/modules/cemetery/cemetery.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from 'src/modules/users/entities';
 import { Cemetery } from 'src/modules/cemetery/entities';
-import { Deceased, DeceasedSubscription } from 'src/modules/deceased/entities';
+import { Deceased, DeceasedMediaContent, DeceasedSubscription } from 'src/modules/deceased/entities';
+import { HelperModule } from 'src/modules/helper/helper.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Deceased, DeceasedSubscription, User, Cemetery]), CemeteryModule],
-  controllers: [DeceasedController, DeceasedSubscriptionsController],
+  imports: [
+    TypeOrmModule.forFeature([Deceased, DeceasedSubscription, User, Cemetery, DeceasedMediaContent]),
+    CemeteryModule,
+    HelperModule,
+  ],
+  controllers: [DeceasedController, DeceasedSubscriptionsController, DeceasedMediaContentController],
   providers: [
     DeceasedService,
     DeceasedSubscriptionService,
     DeceasedQueryOptionsService,
     DeceasedValidationService,
     DeceasedSyncService,
+    DeceasedMediaContentService,
   ],
-  exports: [DeceasedSubscriptionService],
+  exports: [DeceasedSubscriptionService, DeceasedSyncService],
 })
 export class DeceasedModule {}

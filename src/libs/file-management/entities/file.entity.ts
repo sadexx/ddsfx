@@ -1,9 +1,18 @@
 import { EntitySchema } from 'typeorm';
 import { EContentType, EFileExtension, EFileType } from 'src/libs/file-management/common/enums';
 import { BucketLocationConstraint, StorageClass } from '@aws-sdk/client-s3';
+import { PostMediaContent } from 'src/modules/posts/entities';
+import { DeceasedMediaContent } from 'src/modules/deceased/entities';
+import { UserAvatar } from 'src/modules/users/entities';
+import { ContactMethod } from 'src/modules/informational-pages/entities';
 
 export interface File {
   id: string;
+  postMediaContent: PostMediaContent | null;
+  deceasedMediaContent: DeceasedMediaContent | null;
+  userAvatar: UserAvatar | null;
+  contactMethod: ContactMethod | null;
+  uploadedByUserId: string;
   storageType: string;
   storageClass: StorageClass;
   storageRegion: BucketLocationConstraint;
@@ -30,6 +39,10 @@ export const File = new EntitySchema<File>({
       name: 'id',
       primaryKeyConstraintName: 'PK_files',
       default: (): string => 'uuidv7()',
+    },
+    uploadedByUserId: {
+      type: 'uuid',
+      name: 'uploaded_by_user_id',
     },
     storageType: {
       type: 'varchar',
@@ -92,6 +105,28 @@ export const File = new EntitySchema<File>({
       type: 'timestamptz',
       name: 'updating_date',
       updateDate: true,
+    },
+  },
+  relations: {
+    postMediaContent: {
+      type: 'one-to-one',
+      target: 'PostMediaContent',
+      inverseSide: 'file',
+    },
+    deceasedMediaContent: {
+      type: 'one-to-one',
+      target: 'DeceasedMediaContent',
+      inverseSide: 'file',
+    },
+    userAvatar: {
+      type: 'one-to-one',
+      target: 'UserAvatar',
+      inverseSide: 'file',
+    },
+    contactMethod: {
+      type: 'one-to-one',
+      target: 'ContactMethod',
+      inverseSide: 'file',
     },
   },
 });

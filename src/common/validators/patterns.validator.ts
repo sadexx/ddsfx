@@ -42,6 +42,11 @@ export const StandardStringPattern = Type.String({
   maxLength: 255,
 });
 
+export const ExtendedStringPattern = Type.String({
+  minLength: 1,
+  maxLength: 1000,
+});
+
 export const LatitudePattern = Type.Number({
   minimum: -90,
   maximum: 90,

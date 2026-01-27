@@ -6,14 +6,17 @@ import { DeviceInfoDto } from 'src/modules/auth/common/dto/device-info.dto';
 
 export class StartRegistrationDto {
   roleName: Exclude<EUserRoleName, 'super-admin' | 'admin'>;
-  registrationStrategy: Exclude<ERegistrationStrategy, 'email' | 'google' | 'apple' | 'facebook'>;
+  registrationStrategy: Exclude<ERegistrationStrategy, 'google' | 'apple' | 'facebook'>;
   networkMetadata: NetworkMetadataDto;
   deviceInfo: DeviceInfoDto;
 
   static readonly schema = Type.Object(
     {
       roleName: Type.Literal(EUserRoleName.USER),
-      registrationStrategy: Type.Literal(ERegistrationStrategy.PHONE_NUMBER),
+      registrationStrategy: Type.Union([
+        Type.Literal(ERegistrationStrategy.PHONE_NUMBER),
+        Type.Literal(ERegistrationStrategy.EMAIL),
+      ]),
       networkMetadata: NetworkMetadataDto.schema,
       deviceInfo: DeviceInfoDto.schema,
     },

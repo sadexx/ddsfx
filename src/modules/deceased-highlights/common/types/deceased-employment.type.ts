@@ -22,7 +22,9 @@ export type TGetDeceasedEmployments = QueryResultType<DeceasedEmployment, typeof
 export const CreateDeceasedEmploymentsQuery = {
   select: {
     id: true,
+    deceasedEmployments: { id: true },
   } as const satisfies FindOptionsSelect<Deceased>,
+  relations: { deceasedEmployments: true } as const satisfies FindOptionsRelations<Deceased>,
 };
 export type TCreateDeceasedEmployments = QueryResultType<Deceased, typeof CreateDeceasedEmploymentsQuery.select>;
 

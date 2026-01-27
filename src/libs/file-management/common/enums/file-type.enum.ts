@@ -8,7 +8,10 @@ import { ValuesOf } from 'src/common/types';
  */
 export const EFileType = {
   DECEASED_PHOTOS: 'deceased-photos',
-  DECEASED_VIDEOS: 'deceased-videos',
+  POST_PHOTOS: 'post-photos',
+  POST_VIDEOS: 'post-videos',
+  USER_AVATARS: 'user-avatars',
+  CONTACT_US: 'contact-us',
 } as const;
 
 export type EFileType = ValuesOf<typeof EFileType>;

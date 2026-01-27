@@ -1,4 +1,4 @@
-import { BadRequestException, Body, Controller, Post, UseGuards, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Post, UseGuards, UseInterceptors } from '@nestjs/common';
 import { ClientInfo, CurrentUser, OpaqueToken } from 'src/common/decorators';
 import { IClientInfo } from 'src/common/interfaces';
 import { ClientInfoValidationPipe } from 'src/common/pipes';
@@ -10,7 +10,7 @@ import { JwtFullAccessGuard, OpaqueRefreshGuard, OpqOtpVerificationGuard } from 
 import { ClearCookiesInterceptor, SetCookiesInterceptor } from 'src/modules/auth/common/interceptors';
 import { ETokenName } from 'src/libs/tokens/common/enums';
 import { RouteSchema } from '@nestjs/platform-fastify';
-import { IMessageOutput } from 'src/common/outputs';
+import { MessageOutput } from 'src/common/outputs';
 
 @Controller('auth')
 export class AuthController {
@@ -18,12 +18,11 @@ export class AuthController {
 
   @Post('login/email')
   @RouteSchema({ body: LoginEmailDto.schema })
+  @UseInterceptors(SetCookiesInterceptor)
   async loginEmail(
     @ClientInfo(ClientInfoValidationPipe) clientInfo: IClientInfo,
     @Body() dto: LoginEmailDto,
   ): Promise<OneRoleLoginOutput> {
-    throw new BadRequestException('Email login is currently disabled.');
-
     return await this.authService.loginEmail(clientInfo, dto);
   }
 
@@ -32,7 +31,7 @@ export class AuthController {
   async loginPhoneNumber(
     @ClientInfo(ClientInfoValidationPipe) clientInfo: IClientInfo,
     @Body() dto: LoginPhoneNumberDto,
-  ): Promise<IMessageOutput> {
+  ): Promise<MessageOutput> {
     return await this.authService.loginPhoneNumber(clientInfo, dto);
   }
 

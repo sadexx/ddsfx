@@ -385,19 +385,25 @@ export class ExternalSyncService {
           cemetery: { id: true, name: true, address: { id: true, region: true } },
         },
         deceasedSubscriptions: { id: true, creationDate: true },
+        deceasedMediaContents: { id: true, isPrimary: true, memoryFileKey: true, file: { fileKey: true } },
       },
-      relations: { graveLocation: { cemetery: { address: true } }, deceasedSubscriptions: true },
+      relations: {
+        graveLocation: { cemetery: { address: true } },
+        deceasedSubscriptions: true,
+        deceasedMediaContents: { file: true },
+      },
       order: { deceasedSubscriptions: { creationDate: ESortOrder.DESC } },
     });
 
     const transformedData: ITransformedPerson[] = [];
     for (const deceasedRow of deceased) {
-      const { graveLocation, deceasedSubscriptions } = deceasedRow;
+      const { graveLocation, deceasedSubscriptions, deceasedMediaContents } = deceasedRow;
       const subscriptions: ITransformedDeceasedSubscription[] = deceasedSubscriptions
         .slice(0, MAX_SUBSCRIPTIONS_PREVIEW)
         .map((subscription) => ({
           id: subscription.id,
         }));
+      const primaryMedia = deceasedMediaContents.find((mediaContent) => mediaContent.isPrimary);
 
       const transformedPerson: ITransformedPerson = {
         id: deceasedRow.id,
@@ -420,7 +426,7 @@ export class ExternalSyncService {
         deathYear: deceasedRow.deathYear,
         deathMonth: deceasedRow.deathMonth,
         deathDay: deceasedRow.deathDay,
-        fileKey: null,
+        fileKey: primaryMedia?.memoryFileKey ?? primaryMedia?.file?.fileKey ?? null,
         deceasedSubscriptions: subscriptions,
       };
       transformedData.push(transformedPerson);

@@ -1,6 +1,6 @@
 import { Body, Controller, Get, Patch, UsePipes } from '@nestjs/common';
 import { RouteSchema } from '@nestjs/platform-fastify';
-import { IMessageOutput } from 'src/common/outputs';
+import { MessageOutput } from 'src/common/outputs';
 import { NotEmptyBodyPipe } from 'src/common/pipes';
 import { SettingsService } from 'src/modules/settings/services';
 import { UpdateSettingDto } from 'src/modules/settings/common/dto';
@@ -18,8 +18,8 @@ export class SettingsController {
 
   @Patch()
   @UsePipes(NotEmptyBodyPipe)
-  @RouteSchema({ body: UpdateSettingDto.schema, response: { 200: IMessageOutput.schema } })
-  async update(@Body() dto: UpdateSettingDto): Promise<IMessageOutput> {
+  @RouteSchema({ body: UpdateSettingDto.schema, response: { 200: MessageOutput.schema } })
+  async update(@Body() dto: UpdateSettingDto): Promise<MessageOutput> {
     return this.settingsService.updateSetting(dto);
   }
 }

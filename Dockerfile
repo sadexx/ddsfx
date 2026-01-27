@@ -2,7 +2,7 @@
 # BUILD FOR LOCAL DEVELOPMENT
 #############################
 # Use Node.js LTS version
-FROM node:22.21.0-alpine3.22 AS development
+FROM node:22.21.1-alpine3.23 AS development
 
 # Install Tini
 RUN apk add --no-cache tini
@@ -35,7 +35,7 @@ CMD ["npm", "run", "start:dev"]
 # BUILD FOR PRODUCTION
 ######################
 # Use Node.js LTS version
-FROM node:22.21.0-alpine3.22 AS production
+FROM node:22.21.1-alpine3.23 AS production
 
 # Install Tini
 RUN apk add --no-cache tini

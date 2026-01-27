@@ -3,7 +3,8 @@ import { Options as AjvOptions } from '@fastify/ajv-compiler';
 import { FastifyListenOptions, FastifyServerOptions } from 'fastify';
 import type { FastifyCorsOptions } from '@fastify/cors';
 import { formatFastifySchemaErrors } from 'src/config/fastify';
-import { MAX_FILE_SIZE_LIMIT, IS_LOCAL, MAX_ALLOWED_FILES, NUMBER_BYTES_IN_MEGABYTE } from 'src/common/constants';
+import { IS_LOCAL, NUMBER_BYTES_IN_MEGABYTE } from 'src/common/constants';
+import { FILE_CONFIG } from 'src/libs/file-management/common/constants';
 import { FastifyStaticOptions } from '@fastify/static';
 import { join } from 'path';
 import { FastifyCookieOptions } from '@fastify/cookie';
@@ -203,8 +204,8 @@ export const fastifyMultipartOptions = (): FastifyMultipartBaseOptions => {
       fieldNameSize: 0,
       fieldSize: 0,
       fields: 0,
-      fileSize: MAX_FILE_SIZE_LIMIT,
-      files: MAX_ALLOWED_FILES,
+      fileSize: FILE_CONFIG.MAX_REQUEST_SIZE,
+      files: FILE_CONFIG.MAX_FILES,
       headerPairs: 20,
       parts: 1000,
     },

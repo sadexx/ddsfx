@@ -1,4 +1,16 @@
-import { Controller, Param, UseGuards, Post, Body, Patch, Delete, Get, UsePipes } from '@nestjs/common';
+import {
+  Controller,
+  Param,
+  UseGuards,
+  Post,
+  Body,
+  Patch,
+  Delete,
+  Get,
+  UsePipes,
+  HttpCode,
+  HttpStatus,
+} from '@nestjs/common';
 import { JwtFullAccessGuard } from 'src/libs/guards/common/guards';
 import { RouteSchema } from '@nestjs/platform-fastify';
 import { UUIDParamDto } from 'src/common/dto';
@@ -52,6 +64,7 @@ export class DeceasedHobbyController {
   @UseGuards(JwtFullAccessGuard)
   @Delete('/:id')
   @RouteSchema({ params: UUIDParamDto.schema })
+  @HttpCode(HttpStatus.NO_CONTENT)
   async removeDeceasedHobby(@Param() param: UUIDParamDto, @CurrentUser() user: ITokenUserPayload): Promise<void> {
     return this.deceasedHobbyService.removeDeceasedHobby(param, user);
   }

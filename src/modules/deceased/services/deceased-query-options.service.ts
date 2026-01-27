@@ -3,6 +3,7 @@ import { FindManyOptions, FindOneOptions, SelectQueryBuilder } from 'typeorm';
 import { Cemetery } from 'src/modules/cemetery/entities';
 import { User } from 'src/modules/users/entities';
 import {
+  CreateDeceasedMediaContentQuery,
   CreateDeceasedProfileCemeteryQuery,
   CreateDeceasedProfileUserQuery,
   GetDeceasedSubscriptionQuery,
@@ -49,6 +50,10 @@ export class DeceasedQueryOptionsService {
       .addSelect(['cemetery.id', 'cemetery.name'])
       .leftJoin('deceased.deceasedSubscriptions', 'subscription', 'subscription.user_id = :userId', { userId })
       .addSelect(['subscription.id'])
+      .leftJoin('deceased.deceasedMediaContents', 'deceasedMediaContent')
+      .addSelect(['deceasedMediaContent.id', 'deceasedMediaContent.isPrimary', 'deceasedMediaContent.memoryFileKey'])
+      .leftJoin('deceasedMediaContent.file', 'file')
+      .addSelect(['file.id', 'file.fileKey'])
       .where('deceased.id = :deceasedId', { deceasedId });
   }
 
@@ -137,12 +142,6 @@ export class DeceasedQueryOptionsService {
     };
   }
 
-  public ensureDeceasedSubscriptionOptions(userId: string, deceasedId: string): FindOneOptions<DeceasedSubscription> {
-    return {
-      where: { user: { id: userId }, deceased: { id: deceasedId } },
-    };
-  }
-
   /**
    ** DeceasedSyncService
    */
@@ -153,6 +152,28 @@ export class DeceasedQueryOptionsService {
       where: { id: deceasedId },
       relations: LoadDeceasedWithRelationsQuery.relations,
       order: { deceasedSubscriptions: { creationDate: ESortOrder.DESC } },
+    };
+  }
+
+  /**
+   ** DeceasedMediaContentService
+   */
+
+  public createDeceasedMediaContentOptions(deceasedId: string): FindOneOptions<Deceased> {
+    return {
+      select: CreateDeceasedMediaContentQuery.select,
+      where: { id: deceasedId },
+      relations: CreateDeceasedMediaContentQuery.relations,
+    };
+  }
+
+  /**
+   ** DeceasedValidationService
+   */
+
+  public ensureDeceasedSubscriptionOptions(userId: string, deceasedId: string): FindOneOptions<DeceasedSubscription> {
+    return {
+      where: { user: { id: userId }, deceased: { id: deceasedId } },
     };
   }
 }

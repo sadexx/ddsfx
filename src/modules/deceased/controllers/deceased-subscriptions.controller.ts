@@ -1,4 +1,4 @@
-import { Controller, Param, UseGuards, Query, Get, Post, Body, Delete } from '@nestjs/common';
+import { Controller, Param, UseGuards, Query, Get, Post, Body, Delete, HttpCode, HttpStatus } from '@nestjs/common';
 import { JwtFullAccessGuard } from 'src/libs/guards/common/guards';
 import { DeceasedSubscriptionService } from 'src/modules/deceased/services';
 import { RouteSchema } from '@nestjs/platform-fastify';
@@ -54,6 +54,7 @@ export class DeceasedSubscriptionsController {
   @UseGuards(JwtFullAccessGuard)
   @Delete(':id')
   @RouteSchema({ params: UUIDParamDto.schema })
+  @HttpCode(HttpStatus.NO_CONTENT)
   async unsubscribeDeceasedProfile(
     @Param() param: UUIDParamDto,
     @CurrentUser() user: ITokenUserPayload,

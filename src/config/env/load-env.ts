@@ -42,8 +42,17 @@ export const loadEnv = registerAs(ENV_CONFIG_TOKEN, (): EnvConfig => {
     AWS_S3_BUCKET_NAME: process.env['AWS_S3_BUCKET_NAME'],
     AWS_CLOUDFRONT_DISTRIBUTION_ID: process.env['AWS_CLOUDFRONT_DISTRIBUTION_ID'],
     AWS_CLOUDFRONT_DOMAIN_NAME: process.env['AWS_CLOUDFRONT_DOMAIN_NAME'],
+    EMAIL_HOST: process.env['EMAIL_HOST'],
+    EMAIL_PORT: process.env['EMAIL_PORT'],
+    EMAIL_AUTHOR: process.env['EMAIL_AUTHOR'],
+    EMAIL_AUTHOR_NAME: process.env['EMAIL_AUTHOR_NAME'],
+    EMAIL_USER: process.env['EMAIL_USER'],
+    EMAIL_PASSWORD: process.env['EMAIL_PASSWORD'],
     APPLE_CLIENT_ID: process.env['APPLE_CLIENT_ID'],
     GOOGLE_OAUTH2_CLIENT_ID: process.env['GOOGLE_OAUTH2_CLIENT_ID'],
+    MOCK_ENABLED: process.env['MOCK_ENABLED'],
+    MOCK_EMAILS: process.env['MOCK_EMAILS'],
+    MOCK_PHONES: process.env['MOCK_PHONES'],
   };
 
   return validateAndTransformEnv(rawEnv);

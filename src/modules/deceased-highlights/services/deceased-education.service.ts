@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DeceasedEducation } from 'src/modules/deceased-highlights/entities';
-import { DataSource, EntityManager, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
 import {
   DeceasedHighLightsQueryOptionsService,
   DeceasedHighlightsValidationService,
@@ -36,7 +36,6 @@ export class DeceasedEducationService {
     private readonly deceasedHighlightsQueryOptionsService: DeceasedHighLightsQueryOptionsService,
     private readonly deceasedHighlightsValidationService: DeceasedHighlightsValidationService,
     private readonly deceasedSubscriptionService: DeceasedSubscriptionService,
-    private readonly dataSource: DataSource,
   ) {}
 
   public async getDeceasedEducations(param: UUIDParamDto): Promise<TGetDeceasedEducations[]> {
@@ -62,11 +61,9 @@ export class DeceasedEducationService {
     );
 
     await this.deceasedSubscriptionService.ensureDeceasedSubscription(user.sub, param.id);
-    await this.deceasedHighlightsValidationService.validateCreateDeceasedEducations(dto, deceased.id);
+    this.deceasedHighlightsValidationService.validateCreateDeceasedEducations(dto, deceased);
 
-    await this.dataSource.transaction(async (manager) => {
-      await this.constructAndCreateDeceasedEducations(manager, dto, deceased);
-    });
+    await this.constructAndCreateDeceasedEducations(dto, deceased);
   }
 
   public async updateDeceasedEducation(
@@ -101,7 +98,6 @@ export class DeceasedEducationService {
   }
 
   private async constructAndCreateDeceasedEducations(
-    manager: EntityManager,
     dto: CreateDeceasedEducationsDto,
     deceased: TCreateDeceasedEducations,
   ): Promise<DeceasedEducation[]> {
@@ -109,17 +105,13 @@ export class DeceasedEducationService {
       this.constructCreateDeceasedEducationDto(education, deceased),
     );
 
-    return await this.createDeceasedEducation(manager, educationDtos);
+    return await this.createDeceasedEducation(educationDtos);
   }
 
-  private async createDeceasedEducation(
-    manager: EntityManager,
-    dto: IDeceasedEducation[],
-  ): Promise<DeceasedEducation[]> {
-    const deceasedEducationRepository = manager.getRepository(DeceasedEducation);
-    const newDeceasedEducation = deceasedEducationRepository.create(dto);
+  private async createDeceasedEducation(dto: IDeceasedEducation[]): Promise<DeceasedEducation[]> {
+    const newDeceasedEducation = this.deceasedEducationRepository.create(dto);
 
-    return await deceasedEducationRepository.save(newDeceasedEducation);
+    return await this.deceasedEducationRepository.save(newDeceasedEducation);
   }
 
   private async updateEducation(
@@ -153,13 +145,13 @@ export class DeceasedEducationService {
   ): StrictOmit<IDeceasedEducation, 'deceased'> {
     return {
       type: dto.type ?? existingDeceasedEducation.type,
-      city: dto.city ?? existingDeceasedEducation.city,
       institutionName: dto.institutionName ?? existingDeceasedEducation.institutionName,
-      country: dto.country ?? existingDeceasedEducation.country,
-      specialization: dto.specialization ?? existingDeceasedEducation.specialization,
-      description: dto.description ?? existingDeceasedEducation.description,
-      startYear: dto.startYear ?? existingDeceasedEducation.startYear,
-      endYear: dto.endYear ?? existingDeceasedEducation.endYear,
+      city: dto.city !== undefined ? dto.city : existingDeceasedEducation.city,
+      country: dto.country !== undefined ? dto.country : existingDeceasedEducation.country,
+      specialization: dto.specialization !== undefined ? dto.specialization : existingDeceasedEducation.specialization,
+      description: dto.description !== undefined ? dto.description : existingDeceasedEducation.description,
+      startYear: dto.startYear !== undefined ? dto.startYear : existingDeceasedEducation.startYear,
+      endYear: dto.endYear !== undefined ? dto.endYear : existingDeceasedEducation.endYear,
     };
   }
 }

@@ -15,6 +15,7 @@ export const GetDeceasedResidencesQuery = {
     startYear: true,
     endYear: true,
     description: true,
+    isBirthPlace: true,
   } as const satisfies FindOptionsSelect<DeceasedResidence>,
 };
 export type TGetDeceasedResidences = QueryResultType<DeceasedResidence, typeof GetDeceasedResidencesQuery.select>;
@@ -22,7 +23,9 @@ export type TGetDeceasedResidences = QueryResultType<DeceasedResidence, typeof G
 export const CreateDeceasedResidencesQuery = {
   select: {
     id: true,
+    deceasedResidences: { id: true },
   } as const satisfies FindOptionsSelect<Deceased>,
+  relations: { deceasedResidences: true } as const satisfies FindOptionsRelations<Deceased>,
 };
 export type TCreateDeceasedResidences = QueryResultType<Deceased, typeof CreateDeceasedResidencesQuery.select>;
 

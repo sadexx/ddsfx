@@ -3,7 +3,7 @@ import { FastifyRequest } from 'fastify';
 import { Observable } from 'rxjs';
 import { FileUploadService } from 'src/libs/file-management/common/upload-strategies';
 import { IFile } from 'src/libs/file-management/common/interfaces';
-import { MAX_FILE_SIZE_LIMIT } from 'src/common/constants';
+import { FILE_CONFIG } from 'src/libs/file-management/common/constants';
 import { UploadFileDto } from 'src/libs/file-management/common/dto';
 
 /**
@@ -52,7 +52,7 @@ export class MultipleFilesInterceptor implements NestInterceptor {
     try {
       const filesSize = Number(request.headers['content-length']);
 
-      if (filesSize > MAX_FILE_SIZE_LIMIT) {
+      if (filesSize > FILE_CONFIG.MAX_REQUEST_SIZE) {
         throw new BadRequestException('File size exceeds the maximum limit');
       }
 

@@ -4,18 +4,21 @@ import { StandardStringPattern, YearPattern } from 'src/common/validators';
 
 export class UpdateDeceasedEmploymentDto {
   companyName?: string;
-  position?: string;
-  description?: string;
-  startYear?: number;
-  endYear?: number;
+  position?: string | null;
+  description?: string | null;
+  startYear?: number | null;
+  endYear?: number | null;
 
-  static readonly schema = Type.Object({
-    companyName: Type.Optional(StandardStringPattern),
-    position: Type.Optional(StandardStringPattern),
-    description: Type.Optional(StandardStringPattern),
-    startYear: Type.Optional(YearPattern),
-    endYear: Type.Optional(YearPattern),
-  });
+  static readonly schema = Type.Object(
+    {
+      companyName: Type.Optional(StandardStringPattern),
+      position: Type.Optional(Type.Union([StandardStringPattern, Type.Null()])),
+      description: Type.Optional(Type.Union([StandardStringPattern, Type.Null()])),
+      startYear: Type.Optional(Type.Union([YearPattern, Type.Null()])),
+      endYear: Type.Optional(Type.Union([YearPattern, Type.Null()])),
+    },
+    { additionalProperties: false },
+  );
 
   static validate(data: UpdateDeceasedEmploymentDto): void {
     if (data.startYear && data.endYear && data.startYear > data.endYear) {

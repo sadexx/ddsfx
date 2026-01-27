@@ -1,4 +1,16 @@
-import { Controller, Param, UseGuards, Post, Body, Patch, Delete, Get, UsePipes } from '@nestjs/common';
+import {
+  Controller,
+  Param,
+  UseGuards,
+  Post,
+  Body,
+  Patch,
+  Delete,
+  Get,
+  UsePipes,
+  HttpCode,
+  HttpStatus,
+} from '@nestjs/common';
 import { JwtFullAccessGuard } from 'src/libs/guards/common/guards';
 import { RouteSchema } from '@nestjs/platform-fastify';
 import { UUIDParamDto } from 'src/common/dto';
@@ -49,6 +61,7 @@ export class DeceasedSocialMediaLinkController {
   @UseGuards(JwtFullAccessGuard)
   @Delete('/:id')
   @RouteSchema({ params: UUIDParamDto.schema })
+  @HttpCode(HttpStatus.NO_CONTENT)
   async removeDeceasedSocialMediaLink(
     @Param() param: UUIDParamDto,
     @CurrentUser() user: ITokenUserPayload,

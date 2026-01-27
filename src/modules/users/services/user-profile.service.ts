@@ -9,7 +9,9 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { findOneOrFailTyped } from 'src/common/utils/find-one-typed';
 import {
   CreateUserProfileQuery,
+  GetUserProfileQuery,
   TCreateUserProfile,
+  TGetUserProfile,
   TUpdateUserProfile,
   UpdateUserProfileQuery,
 } from 'src/modules/users/common/types';
@@ -23,6 +25,16 @@ export class UserProfileService {
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
   ) {}
+
+  public async getUserProfile(user: ITokenUserPayload): Promise<TGetUserProfile> {
+    const userProfile = await findOneOrFailTyped<TGetUserProfile>(user.sub, this.userRepository, {
+      select: GetUserProfileQuery.select,
+      where: { id: user.sub },
+      relations: GetUserProfileQuery.relations,
+    });
+
+    return userProfile;
+  }
 
   public async createUserProfile(dto: CreateUserProfileDto, user: ITokenUserPayload): Promise<void> {
     const currentUser = await findOneOrFailTyped<TCreateUserProfile>(user.sub, this.userRepository, {
@@ -86,7 +98,7 @@ export class UserProfileService {
     return {
       firstName: dto.firstName ?? existingUserProfile.firstName,
       lastName: dto.lastName ?? existingUserProfile.lastName,
-      middleName: dto.middleName ?? existingUserProfile.middleName,
+      middleName: dto.middleName !== undefined ? dto.middleName : existingUserProfile.middleName,
     };
   }
 }

@@ -8,10 +8,13 @@ export class CreateDeceasedSocialMediaLinkDto {
   platform: EDeceasedSocialMediaLinkPlatform;
   url: string;
 
-  static readonly schema = Type.Object({
-    platform: Type.Enum(EDeceasedSocialMediaLinkPlatform),
-    url: UrlPattern,
-  });
+  static readonly schema = Type.Object(
+    {
+      platform: Type.Enum(EDeceasedSocialMediaLinkPlatform),
+      url: UrlPattern,
+    },
+    { additionalProperties: false },
+  );
 
   static validate(data: CreateDeceasedSocialMediaLinkDto): void {
     const pattern = SOCIAL_MEDIA_LINK_PATTERNS[data.platform];

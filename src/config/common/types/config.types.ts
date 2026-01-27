@@ -36,8 +36,17 @@ export type EnvConfig = Readonly<{
   AWS_S3_BUCKET_NAME: string;
   AWS_CLOUDFRONT_DISTRIBUTION_ID: string;
   AWS_CLOUDFRONT_DOMAIN_NAME: string;
+  EMAIL_HOST: string;
+  EMAIL_PORT: number;
+  EMAIL_AUTHOR: string;
+  EMAIL_AUTHOR_NAME: string;
+  EMAIL_USER: string;
+  EMAIL_PASSWORD: string;
   APPLE_CLIENT_ID: string;
   GOOGLE_OAUTH2_CLIENT_ID: string;
+  MOCK_ENABLED: boolean;
+  MOCK_EMAILS: string;
+  MOCK_PHONES: string;
 }>;
 
 export type RawEnvConfig = {

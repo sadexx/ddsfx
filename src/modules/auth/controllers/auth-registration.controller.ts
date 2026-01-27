@@ -1,4 +1,4 @@
-import { BadRequestException, Body, Controller, Get, Post, UseGuards, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Get, Post, UseGuards, UseInterceptors } from '@nestjs/common';
 import { ClientInfo, OpaqueToken } from 'src/common/decorators';
 import { OpqRegistrationGuard } from 'src/libs/guards/common/guards';
 import { IClientInfo } from 'src/common/interfaces';
@@ -14,7 +14,7 @@ import {
 } from 'src/modules/auth/common/outputs';
 import { ETokenName } from 'src/libs/tokens/common/enums';
 import { RouteSchema } from '@nestjs/platform-fastify';
-import { IMessageOutput } from 'src/common/outputs';
+import { MessageOutput } from 'src/common/outputs';
 
 @Controller('registration')
 export class AuthRegistrationController {
@@ -39,18 +39,14 @@ export class AuthRegistrationController {
   @UseGuards(OpqRegistrationGuard)
   @Post('add-email')
   @RouteSchema({ body: AddEmailDto.schema })
-  async addEmail(@OpaqueToken() tokenDto: IOpaqueTokenData, @Body() dto: AddEmailDto): Promise<IMessageOutput> {
-    throw new BadRequestException('Adding email is currently disabled.');
-
+  async addEmail(@OpaqueToken() tokenDto: IOpaqueTokenData, @Body() dto: AddEmailDto): Promise<MessageOutput> {
     return await this.authRegistrationService.addEmail(tokenDto, dto);
   }
 
   @UseGuards(OpqRegistrationGuard)
   @Post('add-password')
   @RouteSchema({ body: AddPasswordDto.schema })
-  async addPassword(@OpaqueToken() tokenDto: IOpaqueTokenData, @Body() dto: AddPasswordDto): Promise<IMessageOutput> {
-    throw new BadRequestException('Adding password is currently disabled.');
-
+  async addPassword(@OpaqueToken() tokenDto: IOpaqueTokenData, @Body() dto: AddPasswordDto): Promise<MessageOutput> {
     return await this.authRegistrationService.addPassword(tokenDto, dto);
   }
 
@@ -60,7 +56,7 @@ export class AuthRegistrationController {
   async addPhoneNumber(
     @OpaqueToken() tokenDto: IOpaqueTokenData,
     @Body() dto: AddPhoneNumberDto,
-  ): Promise<IMessageOutput> {
+  ): Promise<MessageOutput> {
     return await this.authRegistrationService.addPhoneNumber(tokenDto, dto);
   }
 

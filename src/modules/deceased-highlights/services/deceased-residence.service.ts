@@ -7,7 +7,7 @@ import {
   UpdateDeceasedResidenceDto,
 } from 'src/modules/deceased-highlights/common/dto';
 import { DeceasedResidence } from 'src/modules/deceased-highlights/entities';
-import { DataSource, EntityManager, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
 import { IDeceasedResidence } from 'src/modules/deceased-highlights/common/interfaces';
 import { Deceased } from 'src/modules/deceased/entities';
 import {
@@ -36,7 +36,6 @@ export class DeceasedResidenceService {
     private readonly deceasedHighlightsQueryOptionsService: DeceasedHighLightsQueryOptionsService,
     private readonly deceasedHighlightsValidationService: DeceasedHighlightsValidationService,
     private readonly deceasedSubscriptionService: DeceasedSubscriptionService,
-    private readonly dataSource: DataSource,
   ) {}
 
   public async getDeceasedResidences(param: UUIDParamDto): Promise<TGetDeceasedResidences[]> {
@@ -62,11 +61,9 @@ export class DeceasedResidenceService {
     );
 
     await this.deceasedSubscriptionService.ensureDeceasedSubscription(user.sub, param.id);
-    await this.deceasedHighlightsValidationService.validateCreateDeceasedResidences(dto, deceased.id);
+    await this.deceasedHighlightsValidationService.validateCreateDeceasedResidences(dto, deceased);
 
-    await this.dataSource.transaction(async (manager) => {
-      await this.constructAndCreateDeceasedResidences(manager, dto, deceased);
-    });
+    await this.constructAndCreateDeceasedResidences(dto, deceased);
   }
 
   public async updateDeceasedResidence(
@@ -101,7 +98,6 @@ export class DeceasedResidenceService {
   }
 
   private async constructAndCreateDeceasedResidences(
-    manager: EntityManager,
     dto: CreateDeceasedResidencesDto,
     deceased: TCreateDeceasedResidences,
   ): Promise<DeceasedResidence[]> {
@@ -109,17 +105,13 @@ export class DeceasedResidenceService {
       this.constructCreateDeceasedResidenceDto(residence, deceased),
     );
 
-    return await this.createDeceasedResidence(manager, residenceDtos);
+    return await this.createDeceasedResidence(residenceDtos);
   }
 
-  private async createDeceasedResidence(
-    manager: EntityManager,
-    dto: IDeceasedResidence[],
-  ): Promise<DeceasedResidence[]> {
-    const deceasedResidenceRepository = manager.getRepository(DeceasedResidence);
-    const newDeceasedResidence = deceasedResidenceRepository.create(dto);
+  private async createDeceasedResidence(dto: IDeceasedResidence[]): Promise<DeceasedResidence[]> {
+    const newDeceasedResidence = this.deceasedResidenceRepository.create(dto);
 
-    return await deceasedResidenceRepository.save(newDeceasedResidence);
+    return await this.deceasedResidenceRepository.save(newDeceasedResidence);
   }
 
   private async updateResidence(
@@ -151,11 +143,11 @@ export class DeceasedResidenceService {
   ): StrictOmit<IDeceasedResidence, 'deceased'> {
     return {
       city: dto.city ?? existingDeceasedResidence.city,
-      country: dto.country ?? existingDeceasedResidence.country,
-      description: dto.description ?? existingDeceasedResidence.description,
-      startYear: dto.startYear ?? existingDeceasedResidence.startYear,
-      endYear: dto.endYear ?? existingDeceasedResidence.endYear,
       isBirthPlace: dto.isBirthPlace ?? existingDeceasedResidence.isBirthPlace,
+      country: dto.country !== undefined ? dto.country : existingDeceasedResidence.country,
+      description: dto.description !== undefined ? dto.description : existingDeceasedResidence.description,
+      startYear: dto.startYear !== undefined ? dto.startYear : existingDeceasedResidence.startYear,
+      endYear: dto.endYear !== undefined ? dto.endYear : existingDeceasedResidence.endYear,
     };
   }
 }

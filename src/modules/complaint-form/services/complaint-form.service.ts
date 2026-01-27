@@ -8,7 +8,7 @@ import { User } from 'src/modules/users/entities';
 import { ITokenUserPayload } from 'src/libs/tokens/common/interfaces';
 import { findOneOrFailTyped } from 'src/common/utils/find-one-typed';
 import { TUserForCreateComplaintForm, UserForCreateComplaintForm } from 'src/modules/complaint-form/common/types';
-import { IMessageOutput } from 'src/common/outputs';
+import { MessageOutput } from 'src/common/outputs';
 
 @Injectable()
 export class ComplaintFormService {
@@ -33,7 +33,7 @@ export class ComplaintFormService {
   public async createComplaintForm(
     currentUser: ITokenUserPayload,
     dto: CreateComplaintFormDto,
-  ): Promise<IMessageOutput> {
+  ): Promise<MessageOutput> {
     const reportedUser = await findOneOrFailTyped<TUserForCreateComplaintForm>(currentUser.sub, this.userRepository, {
       select: UserForCreateComplaintForm.select,
       where: { id: currentUser.sub },

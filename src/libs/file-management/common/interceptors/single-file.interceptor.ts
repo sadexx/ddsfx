@@ -2,8 +2,8 @@ import { BadRequestException, CallHandler, ExecutionContext, Injectable, NestInt
 import { FastifyRequest } from 'fastify';
 import { Observable } from 'rxjs';
 import { FileUploadService } from 'src/libs/file-management/common/upload-strategies';
-import { IFile } from 'src/libs/file-management/common/interfaces';
-import { FILE_SIZE_LIMIT } from 'src/common/constants';
+import { IFile, IFileUploadContext } from 'src/libs/file-management/common/interfaces';
+import { FILE_CONFIG } from 'src/libs/file-management/common/constants';
 import { UploadFileDto } from 'src/libs/file-management/common/dto';
 
 /**
@@ -41,6 +41,7 @@ export class SingleFileInterceptor implements NestInterceptor {
       .switchToHttp()
       .getRequest<FastifyRequest<{ Querystring: UploadFileDto }> & { uploadedFile: IFile }>();
     const category = request.query.category;
+    const uploadContext: IFileUploadContext = {};
 
     if (!request.isMultipart || !request.isMultipart()) {
       throw new BadRequestException('No file uploaded');
@@ -49,7 +50,7 @@ export class SingleFileInterceptor implements NestInterceptor {
     try {
       const fileSize = Number(request.headers['content-length']);
 
-      if (fileSize > FILE_SIZE_LIMIT) {
+      if (fileSize > FILE_CONFIG.MAX_REQUEST_SIZE) {
         throw new BadRequestException('File size exceeds the maximum limit');
       }
 
@@ -59,10 +60,10 @@ export class SingleFileInterceptor implements NestInterceptor {
         throw new BadRequestException('No file uploaded');
       }
 
-      request.uploadedFile = await this.uploadService.uploadFile(multipartFile, category);
+      request.uploadedFile = await this.uploadService.uploadFile(uploadContext, multipartFile, category);
     } catch (error) {
-      if (request.uploadedFile) {
-        await this.uploadService.deleteFailedFiles([request.uploadedFile]);
+      if (uploadContext.uploadedFile) {
+        await this.uploadService.deleteFailedFiles([uploadContext.uploadedFile]);
       }
 
       throw new BadRequestException(`Single file upload failed: ${(error as Error).message}`);

@@ -5,7 +5,7 @@ import { CurrentUser } from 'src/common/decorators';
 import { ITokenUserPayload } from 'src/libs/tokens/common/interfaces';
 import { DeceasedCorrectionService } from 'src/modules/deceased-correction/services';
 import { CreateDeceasedCorrectionDto } from 'src/modules/deceased-correction/common/dto';
-import { IMessageOutput } from 'src/common/outputs';
+import { MessageOutput } from 'src/common/outputs';
 import { DeceasedCorrection } from 'src/modules/deceased-correction/entities';
 
 @Controller('deceased-corrections')
@@ -25,7 +25,7 @@ export class DeceasedCorrectionController {
   async create(
     @CurrentUser() user: ITokenUserPayload,
     @Body() dto: CreateDeceasedCorrectionDto,
-  ): Promise<IMessageOutput> {
+  ): Promise<MessageOutput> {
     return this.deceasedCorrectionService.createDeceasedCorrection(user, dto);
   }
 }

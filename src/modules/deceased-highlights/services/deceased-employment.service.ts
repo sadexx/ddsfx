@@ -7,7 +7,7 @@ import {
   UpdateDeceasedEmploymentDto,
 } from 'src/modules/deceased-highlights/common/dto';
 import { DeceasedEmployment } from 'src/modules/deceased-highlights/entities';
-import { DataSource, EntityManager, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
 import { IDeceasedEmployment } from 'src/modules/deceased-highlights/common/interfaces';
 import { Deceased } from 'src/modules/deceased/entities';
 import {
@@ -36,7 +36,6 @@ export class DeceasedEmploymentService {
     private readonly deceasedHighlightsQueryOptionsService: DeceasedHighLightsQueryOptionsService,
     private readonly deceasedHighlightsValidationService: DeceasedHighlightsValidationService,
     private readonly deceasedSubscriptionService: DeceasedSubscriptionService,
-    private readonly dataSource: DataSource,
   ) {}
 
   public async getDeceasedEmployments(param: UUIDParamDto): Promise<TGetDeceasedEmployments[]> {
@@ -62,11 +61,9 @@ export class DeceasedEmploymentService {
     );
 
     await this.deceasedSubscriptionService.ensureDeceasedSubscription(user.sub, param.id);
-    await this.deceasedHighlightsValidationService.validateCreateDeceasedEmployments(dto, deceased.id);
+    this.deceasedHighlightsValidationService.validateCreateDeceasedEmployments(dto, deceased);
 
-    await this.dataSource.transaction(async (manager) => {
-      await this.constructAndCreateDeceasedEmployments(manager, dto, deceased);
-    });
+    await this.constructAndCreateDeceasedEmployments(dto, deceased);
   }
 
   public async updateDeceasedEmployment(
@@ -101,7 +98,6 @@ export class DeceasedEmploymentService {
   }
 
   private async constructAndCreateDeceasedEmployments(
-    manager: EntityManager,
     dto: CreateDeceasedEmploymentsDto,
     deceased: TCreateDeceasedEmployments,
   ): Promise<DeceasedEmployment[]> {
@@ -109,17 +105,13 @@ export class DeceasedEmploymentService {
       this.constructCreateDeceasedEmploymentDto(employment, deceased),
     );
 
-    return await this.createDeceasedEmployment(manager, employmentDtos);
+    return await this.createDeceasedEmployment(employmentDtos);
   }
 
-  private async createDeceasedEmployment(
-    manager: EntityManager,
-    dto: IDeceasedEmployment[],
-  ): Promise<DeceasedEmployment[]> {
-    const deceasedEmploymentRepository = manager.getRepository(DeceasedEmployment);
-    const newDeceasedEmployment = deceasedEmploymentRepository.create(dto);
+  private async createDeceasedEmployment(dto: IDeceasedEmployment[]): Promise<DeceasedEmployment[]> {
+    const newDeceasedEmployment = this.deceasedEmploymentRepository.create(dto);
 
-    return await deceasedEmploymentRepository.save(newDeceasedEmployment);
+    return await this.deceasedEmploymentRepository.save(newDeceasedEmployment);
   }
 
   private async updateEmployment(
@@ -135,8 +127,8 @@ export class DeceasedEmploymentService {
     deceased: TCreateDeceasedEmployments,
   ): IDeceasedEmployment {
     return {
-      position: dto.position,
-      companyName: dto.companyName ?? null,
+      companyName: dto.companyName,
+      position: dto.position ?? null,
       description: dto.description ?? null,
       startYear: dto.startYear ?? null,
       endYear: dto.endYear ?? null,
@@ -150,10 +142,10 @@ export class DeceasedEmploymentService {
   ): StrictOmit<IDeceasedEmployment, 'deceased'> {
     return {
       companyName: dto.companyName ?? existingDeceasedEmployment.companyName,
-      position: dto.position ?? existingDeceasedEmployment.position,
-      description: dto.description ?? existingDeceasedEmployment.description,
-      startYear: dto.startYear ?? existingDeceasedEmployment.startYear,
-      endYear: dto.endYear ?? existingDeceasedEmployment.endYear,
+      position: dto.position !== undefined ? dto.position : existingDeceasedEmployment.position,
+      description: dto.description !== undefined ? dto.description : existingDeceasedEmployment.description,
+      startYear: dto.startYear !== undefined ? dto.startYear : existingDeceasedEmployment.startYear,
+      endYear: dto.endYear !== undefined ? dto.endYear : existingDeceasedEmployment.endYear,
     };
   }
 }

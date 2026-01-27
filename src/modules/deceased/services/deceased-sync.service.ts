@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { ITransformedDeceasedSubscription, ITransformedPerson } from 'src/modules/external-sync/common/interfaces';
-import { Deceased } from 'src/modules/deceased/entities';
+import { Deceased, DeceasedMediaContent } from 'src/modules/deceased/entities';
 import { DeceasedQueryOptionsService } from 'src/modules/deceased/services';
 import { findOneOrFailTyped } from 'src/common/utils/find-one-typed';
 import { TLoadDeceasedWithRelations } from 'src/modules/deceased/common/types';
@@ -10,7 +10,7 @@ import { OpenSearchService } from 'src/libs/opensearch/services';
 import { EOpenSearchIndexType } from 'src/libs/opensearch/common/enums';
 import { PersonSchema } from 'src/modules/search-engine-logic/schemas';
 import { IDeceased } from 'src/modules/deceased/common/interfaces';
-import { EDeceasedStatus } from 'src/modules/deceased/common/enums';
+import { EDeceasedMediaContentType, EDeceasedStatus } from 'src/modules/deceased/common/enums';
 import { Cemetery, GraveLocation } from 'src/modules/cemetery/entities';
 
 @Injectable()
@@ -92,6 +92,15 @@ export class DeceasedSyncService {
       await this.createGraveLocationFromIndex(manager, person, savedDeceased);
     }
 
+    if (person.fileKey) {
+      await manager.getRepository(DeceasedMediaContent).save({
+        contentType: EDeceasedMediaContentType.MEMORY_PHOTO,
+        memoryFileKey: person.fileKey,
+        isPrimary: true,
+        deceased: savedDeceased,
+      });
+    }
+
     return savedDeceased;
   }
 
@@ -120,12 +129,13 @@ export class DeceasedSyncService {
   private mapDeceasedToSearchDocument(deceased: TLoadDeceasedWithRelations): ITransformedPerson {
     const MAX_SUBSCRIPTIONS_PREVIEW = 3;
 
-    const { graveLocation, deceasedSubscriptions } = deceased;
+    const { graveLocation, deceasedSubscriptions, deceasedMediaContents } = deceased;
     const subscriptions: ITransformedDeceasedSubscription[] = deceasedSubscriptions
       .slice(0, MAX_SUBSCRIPTIONS_PREVIEW)
       .map((subscription) => ({
         id: subscription.id,
       }));
+    const primaryMedia = deceasedMediaContents.find((mediaContent) => mediaContent.isPrimary);
 
     return {
       id: deceased.id,
@@ -148,7 +158,7 @@ export class DeceasedSyncService {
       deathYear: deceased.deathYear,
       deathMonth: deceased.deathMonth,
       deathDay: deceased.deathDay,
-      fileKey: null,
+      fileKey: primaryMedia?.memoryFileKey ?? primaryMedia?.file?.fileKey ?? null,
       deceasedSubscriptions: subscriptions,
     };
   }

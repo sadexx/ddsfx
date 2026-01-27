@@ -49,7 +49,7 @@ services:
 
   postgres:
     container_name: postgres-freya
-    image: postgres:18.0-alpine3.22
+    image: postgres:18.1-alpine3.23
     restart: unless-stopped
     env_file:
       - path: ./docker/env/postgres.env
@@ -66,7 +66,7 @@ services:
 
   redis:
     container_name: redis-freya
-    image: redis:8.2-alpine3.22
+    image: redis:8.4-alpine3.22
     restart: unless-stopped
     volumes:
       - redis-data-freya:/data
@@ -80,11 +80,11 @@ services:
 
   opensearch:
     container_name: opensearch-freya
-    image: opensearchproject/opensearch:3
+    image: opensearchproject/opensearch:3.4.0
     command: >
       bash -c '
       if [ ! -d "/usr/share/opensearch/plugins/prometheus-exporter" ]; then
-        /usr/share/opensearch/bin/opensearch-plugin install -b https://github.com/opensearch-project/opensearch-prometheus-exporter/releases/download/3.2.0.0/prometheus-exporter-3.2.0.0.zip
+        /usr/share/opensearch/bin/opensearch-plugin install -b https://github.com/opensearch-project/opensearch-prometheus-exporter/releases/download/3.4.0.0/prometheus-exporter-3.4.0.0.zip
       fi &&
       /usr/share/opensearch/opensearch-docker-entrypoint.sh
       '
@@ -123,7 +123,7 @@ services:
 
   pgadmin:
     container_name: pgadmin-freya
-    image: dpage/pgadmin4:9.8
+    image: dpage/pgadmin4:9.11
     restart: unless-stopped
     env_file:
       - path: ./docker/env/pgadmin.env
@@ -178,7 +178,7 @@ services:
 
   grafana:
     container_name: grafana-freya
-    image: grafana/grafana-enterprise:12.1.0
+    image: grafana/grafana-enterprise:12.3
     restart: unless-stopped
     env_file:
       - path: ./docker/env/grafana.env
@@ -196,7 +196,7 @@ services:
 
   prometheus:
     container_name: prometheus-freya
-    image: prom/prometheus:v3.6.0
+    image: prom/prometheus:v3.8.0
     command:
       - --config.file=/etc/prometheus/prometheus.yml
       - --web.external-url=http://localhost/prometheus-app
@@ -233,7 +233,7 @@ services:
 
   node-exporter:
     container_name: node-exporter-freya
-    image: prom/node-exporter:v1.9.1
+    image: prom/node-exporter:v1.10.2
     command:
       - --path.procfs=/host/proc
       - --path.sysfs=/host/sys
@@ -254,7 +254,7 @@ services:
 
   postgres-exporter:
     container_name: postgres-exporter-freya
-    image: prometheuscommunity/postgres-exporter:v0.17.1
+    image: prometheuscommunity/postgres-exporter:v0.18.1
     restart: unless-stopped
     env_file:
       - path: ./docker/env/postgres-exporter.env
@@ -271,7 +271,7 @@ services:
 
   redis-exporter:
     container_name: redis-exporter-freya
-    image: oliver006/redis_exporter:v1.77.0-alpine
+    image: oliver006/redis_exporter:v1.80.1-alpine
     command:
       - --redis.addr=redis-freya:6379
     restart: unless-stopped

@@ -8,7 +8,7 @@ import { CurrentUser } from 'src/common/decorators';
 import { RouteSchema } from '@nestjs/platform-fastify';
 import { UUIDParamDto } from 'src/common/dto';
 import { TGetDeceasedProfile } from 'src/modules/deceased/common/types';
-import { ICreateDeceasedProfileOutput } from 'src/modules/deceased/common/outputs';
+import { EntityIdOutput } from 'src/common/outputs';
 
 @Controller('deceased')
 export class DeceasedController {
@@ -30,7 +30,7 @@ export class DeceasedController {
   async createDeceasedProfile(
     @Body(ValidateAndTransformPipe) dto: CreateDeceasedProfileDto,
     @CurrentUser() user: ITokenUserPayload,
-  ): Promise<ICreateDeceasedProfileOutput> {
+  ): Promise<EntityIdOutput> {
     return this.deceasedService.createDeceasedProfile(dto, user);
   }
 

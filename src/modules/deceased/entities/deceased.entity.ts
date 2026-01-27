@@ -1,7 +1,7 @@
 import { EntitySchema } from 'typeorm';
 import { GraveLocation } from 'src/modules/cemetery/entities';
 import { EDeceasedStatus } from 'src/modules/deceased/common/enums';
-import { DeceasedSubscription } from 'src/modules/deceased/entities';
+import { DeceasedMediaContent, DeceasedSubscription } from 'src/modules/deceased/entities';
 import { DeceasedCorrection } from 'src/modules/deceased-correction/entities';
 import {
   DeceasedBiography,
@@ -11,6 +11,7 @@ import {
   DeceasedResidence,
   DeceasedSocialMediaLink,
 } from 'src/modules/deceased-highlights/entities';
+import { Post } from 'src/modules/posts/entities';
 
 export interface Deceased {
   id: string;
@@ -23,6 +24,8 @@ export interface Deceased {
   deceasedHobbies: DeceasedHobby[];
   deceasedResidences: DeceasedResidence[];
   deceasedSocialMediaLinks: DeceasedSocialMediaLink[];
+  deceasedMediaContents: DeceasedMediaContent[];
+  posts: Post[];
   status: EDeceasedStatus;
   originalId: number | null;
   firstName: string | null;
@@ -171,6 +174,17 @@ export const Deceased = new EntitySchema<Deceased>({
     deceasedSocialMediaLinks: {
       type: 'one-to-many',
       target: 'DeceasedSocialMediaLink',
+      inverseSide: 'deceased',
+    },
+
+    deceasedMediaContents: {
+      type: 'one-to-many',
+      target: 'DeceasedMediaContent',
+      inverseSide: 'deceased',
+    },
+    posts: {
+      type: 'one-to-many',
+      target: 'Post',
       inverseSide: 'deceased',
     },
   },

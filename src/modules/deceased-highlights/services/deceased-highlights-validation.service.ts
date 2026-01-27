@@ -1,33 +1,31 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { FindOptionsWhere, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
 import {
   CreateDeceasedEducationsDto,
   CreateDeceasedEmploymentsDto,
   CreateDeceasedHobbyDto,
   CreateDeceasedResidencesDto,
   CreateDeceasedSocialMediaLinkDto,
+  UpdateDeceasedEducationDto,
   UpdateDeceasedEmploymentDto,
   UpdateDeceasedHobbyDto,
   UpdateDeceasedResidenceDto,
   UpdateDeceasedSocialMediaLinkDto,
 } from 'src/modules/deceased-highlights/common/dto';
 import {
+  TCreateDeceasedBiography,
+  TCreateDeceasedEducations,
+  TCreateDeceasedEmployments,
+  TCreateDeceasedHobby,
+  TCreateDeceasedResidences,
+  TCreateDeceasedSocialMediaLink,
   TUpdateDeceasedEducation,
   TUpdateDeceasedEmployment,
   TUpdateDeceasedResidence,
   TUpdateDeceasedSocialMediaLink,
-  TValidateEntitiesLimit,
 } from 'src/modules/deceased-highlights/common/types';
-import {
-  DeceasedBiography,
-  DeceasedEducation,
-  DeceasedEmployment,
-  DeceasedHobby,
-  DeceasedHobbyTag,
-  DeceasedResidence,
-  DeceasedSocialMediaLink,
-} from 'src/modules/deceased-highlights/entities';
+import { DeceasedHobbyTag, DeceasedResidence } from 'src/modules/deceased-highlights/entities';
 import { DeceasedHighLightsQueryOptionsService } from 'src/modules/deceased-highlights/services';
 import { SOCIAL_MEDIA_LINK_PATTERNS } from 'src/modules/deceased-highlights/common/constants';
 
@@ -37,18 +35,8 @@ export class DeceasedHighlightsValidationService {
   constructor(
     @InjectRepository(DeceasedResidence)
     private readonly deceasedResidenceRepository: Repository<DeceasedResidence>,
-    @InjectRepository(DeceasedEducation)
-    private readonly deceasedEducationRepository: Repository<DeceasedEducation>,
-    @InjectRepository(DeceasedEmployment)
-    private readonly deceasedEmploymentRepository: Repository<DeceasedEmployment>,
-    @InjectRepository(DeceasedHobby)
-    private readonly deceasedHobbyRepository: Repository<DeceasedHobby>,
     @InjectRepository(DeceasedHobbyTag)
     private readonly deceasedHobbyTagRepository: Repository<DeceasedHobbyTag>,
-    @InjectRepository(DeceasedBiography)
-    private readonly deceasedBiographyRepository: Repository<DeceasedBiography>,
-    @InjectRepository(DeceasedSocialMediaLink)
-    private readonly deceasedSocialMediaLinkRepository: Repository<DeceasedSocialMediaLink>,
     private readonly deceasedHighLightsQueryOptionsService: DeceasedHighLightsQueryOptionsService,
   ) {}
 
@@ -56,14 +44,17 @@ export class DeceasedHighlightsValidationService {
    ** DeceasedResidenceService
    */
 
-  public async validateCreateDeceasedResidences(dto: CreateDeceasedResidencesDto, deceasedId: string): Promise<void> {
+  public async validateCreateDeceasedResidences(
+    dto: CreateDeceasedResidencesDto,
+    deceased: TCreateDeceasedResidences,
+  ): Promise<void> {
     const hasNewBirthPlace = dto.residences.some((residence) => residence.isBirthPlace);
 
     if (hasNewBirthPlace) {
-      await this.validateBirthplaceConstraint(deceasedId);
+      await this.validateBirthplaceConstraint(deceased.id);
     }
 
-    await this.validateEntitiesLimit(this.deceasedResidenceRepository, deceasedId, dto.residences.length);
+    this.validateEntitiesLimit(deceased.deceasedResidences, dto.residences.length);
   }
 
   public async validateUpdateDeceasedResidence(
@@ -90,12 +81,12 @@ export class DeceasedHighlightsValidationService {
    ** DeceasedEducationService
    */
 
-  public async validateCreateDeceasedEducations(dto: CreateDeceasedEducationsDto, deceasedId: string): Promise<void> {
-    await this.validateEntitiesLimit(this.deceasedEducationRepository, deceasedId, dto.educations.length);
+  public validateCreateDeceasedEducations(dto: CreateDeceasedEducationsDto, deceased: TCreateDeceasedEducations): void {
+    this.validateEntitiesLimit(deceased.deceasedEducations, dto.educations.length);
   }
 
   public validateUpdateDeceasedEducation(
-    dto: UpdateDeceasedResidenceDto,
+    dto: UpdateDeceasedEducationDto,
     existingDeceasedResidence: TUpdateDeceasedEducation,
   ): void {
     this.validateEntityYearRange(existingDeceasedResidence, dto.startYear, dto.endYear);
@@ -105,8 +96,11 @@ export class DeceasedHighlightsValidationService {
    ** DeceasedEmploymentService
    */
 
-  public async validateCreateDeceasedEmployments(dto: CreateDeceasedEmploymentsDto, deceasedId: string): Promise<void> {
-    await this.validateEntitiesLimit(this.deceasedEmploymentRepository, deceasedId, dto.employments.length);
+  public validateCreateDeceasedEmployments(
+    dto: CreateDeceasedEmploymentsDto,
+    deceased: TCreateDeceasedEmployments,
+  ): void {
+    this.validateEntitiesLimit(deceased.deceasedEmployments, dto.employments.length);
   }
 
   public validateUpdateDeceasedEmployment(
@@ -120,8 +114,8 @@ export class DeceasedHighlightsValidationService {
    ** DeceasedHobbyService
    */
 
-  public async validateCreateDeceasedHobby(dto: CreateDeceasedHobbyDto, deceasedId: string): Promise<void> {
-    await this.validateEntitiesLimit(this.deceasedHobbyRepository, deceasedId, 1);
+  public async validateCreateDeceasedHobby(dto: CreateDeceasedHobbyDto, deceased: TCreateDeceasedHobby): Promise<void> {
+    this.validateEntitiesLimit(deceased.deceasedHobbies, 1);
 
     if (dto.tagIds && dto.tagIds.length > 0) {
       await this.ensureHobbyTagsExist(dto.tagIds);
@@ -147,23 +141,19 @@ export class DeceasedHighlightsValidationService {
    ** DeceasedBiographyService
    */
 
-  public async validateCreateDeceasedBiography(deceasedId: string): Promise<void> {
-    await this.validateEntitiesLimit(this.deceasedBiographyRepository, deceasedId, 1);
+  public validateCreateDeceasedBiography(deceased: TCreateDeceasedBiography): void {
+    this.validateEntitiesLimit(deceased.deceasedBiographies, 1);
   }
 
   /**
    ** DeceasedSocialMediaLinkService
    */
 
-  public async validateCreateDeceasedSocialMediaLink(
+  public validateCreateDeceasedSocialMediaLink(
     dto: CreateDeceasedSocialMediaLinkDto,
-    deceasedId: string,
-  ): Promise<void> {
-    const queryOptions = this.deceasedHighLightsQueryOptionsService.validateCreateDeceasedSocialMediaLinksOptions(
-      deceasedId,
-      dto.platform,
-    );
-    const existingSocialMediaLink = await this.deceasedSocialMediaLinkRepository.exists(queryOptions);
+    deceased: TCreateDeceasedSocialMediaLink,
+  ): void {
+    const existingSocialMediaLink = deceased.deceasedSocialMediaLinks.some((link) => link.platform === dto.platform);
 
     if (existingSocialMediaLink) {
       throw new BadRequestException('Social media link for this platform already exists');
@@ -187,16 +177,8 @@ export class DeceasedHighlightsValidationService {
    ** Common helpers
    */
 
-  private async validateEntitiesLimit<T extends TValidateEntitiesLimit>(
-    repository: Repository<T>,
-    deceasedId: string,
-    newEntityItemsCount: number,
-  ): Promise<void> {
-    const existingEntitiesCount = await repository.count({
-      where: { deceased: { id: deceasedId } } as FindOptionsWhere<T>,
-    });
-
-    if (existingEntitiesCount + newEntityItemsCount > this.HIGHLIGHTS_LIMIT) {
+  private validateEntitiesLimit(existingEntities: { id: string }[], newEntityItemsCount: number): void {
+    if (existingEntities.length + newEntityItemsCount > this.HIGHLIGHTS_LIMIT) {
       throw new BadRequestException('Maximum number of entities reached');
     }
   }

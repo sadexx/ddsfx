@@ -3,7 +3,7 @@ import { RouteSchema } from '@nestjs/platform-fastify';
 import { SearchEngineLogicService } from 'src/modules/search-engine-logic/services';
 import { SearchQueryDto } from 'src/modules/search-engine-logic/common/dto';
 import { IPersonOutput } from 'src/modules/search-engine-logic/common/output';
-import { IMessageOutput } from 'src/common/outputs';
+import { MessageOutput } from 'src/common/outputs';
 import { ClientInfoValidationPipe } from 'src/common/pipes';
 import { ClientInfo } from 'src/common/decorators';
 import { IClientInfo } from 'src/common/interfaces';
@@ -13,8 +13,8 @@ export class SearchEngineLogicController {
   constructor(private readonly searchService: SearchEngineLogicService) {}
 
   @Get('create-seed-data-memory')
-  @RouteSchema({ response: { 200: IMessageOutput.schema } })
-  async createMemorySeedData(): Promise<IMessageOutput> {
+  @RouteSchema({ response: { 200: MessageOutput.schema } })
+  async createMemorySeedData(): Promise<MessageOutput> {
     return this.searchService.createMemorySeedData();
   }
 

@@ -18,7 +18,7 @@ import {
   OneRoleLoginOutput,
 } from 'src/modules/auth/common/outputs';
 import { IAppleProviderOutput, IGoogleProviderOutput, IOpaqueTokenData } from 'src/libs/tokens/common/interfaces';
-import { IMessageOutput } from 'src/common/outputs';
+import { MessageOutput } from 'src/common/outputs';
 import { AuthCreateAccountService } from 'src/modules/auth/services/auth-create-account.service';
 import { IRegistrationState, IStartRegistration } from 'src/libs/temporal-state/common/interfaces';
 import { EUserRoleName } from 'src/modules/users/common/enum';
@@ -88,7 +88,7 @@ export class AuthRegistrationService {
     return { registrationToken: registrationToken, registrationSteps: steps };
   }
 
-  public async addEmail(tokenDto: IOpaqueTokenData, dto: AddEmailDto): Promise<IMessageOutput> {
+  public async addEmail(tokenDto: IOpaqueTokenData, dto: AddEmailDto): Promise<MessageOutput> {
     await this.authCreateAccountService.checkEmailUniqueness(dto.email);
     await this.registrationRepository.recordEmailVerificationAttempt(tokenDto.token, dto.email);
     await this.otpVerificationService.sendRegistrationEmailOtp(dto.email);
@@ -96,13 +96,13 @@ export class AuthRegistrationService {
     return { message: 'Verification OTP has been sent to the provided email address.' };
   }
 
-  public async addPassword(tokenDto: IOpaqueTokenData, dto: AddPasswordDto): Promise<IMessageOutput> {
+  public async addPassword(tokenDto: IOpaqueTokenData, dto: AddPasswordDto): Promise<MessageOutput> {
     await this.registrationRepository.setPassword(tokenDto.token, dto.password);
 
     return { message: 'Password has been set successfully.' };
   }
 
-  public async addPhoneNumber(tokenDto: IOpaqueTokenData, dto: AddPhoneNumberDto): Promise<IMessageOutput> {
+  public async addPhoneNumber(tokenDto: IOpaqueTokenData, dto: AddPhoneNumberDto): Promise<MessageOutput> {
     await this.authCreateAccountService.checkPhoneNumberUniqueness(dto.phoneNumber);
     await this.registrationRepository.recordPhoneVerificationAttempt(tokenDto.token, dto.phoneNumber);
     await this.otpVerificationService.sendRegistrationPhoneNumberOtp(dto.phoneNumber);

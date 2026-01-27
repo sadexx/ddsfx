@@ -76,7 +76,7 @@ export default tseslint.config(
       '@typescript-eslint/no-magic-numbers': [
         'error',
         {
-          ignore: [0, 1],
+          ignore: [-1, 0, 1],
           ignoreDefaultValues: true,
           ignoreClassFieldInitialValues: true,
           ignoreEnums: true,

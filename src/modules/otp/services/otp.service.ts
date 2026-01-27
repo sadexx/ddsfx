@@ -8,6 +8,7 @@ import { EOtpFlowType } from 'src/modules/otp/common/enum';
 import { EEnvironment } from 'src/common/enums';
 import { LokiLogger } from 'src/libs/logger';
 import { AwsEndUserMessagingService } from 'src/libs/aws/end-user-messaging/services';
+import { EmailsService } from 'src/modules/emails/services';
 
 @Injectable()
 export class OtpService {
@@ -17,20 +18,21 @@ export class OtpService {
   constructor(
     private readonly redisService: RedisService,
     private readonly awsEndUserMessagingService: AwsEndUserMessagingService,
+    private readonly emailsService: EmailsService,
   ) {}
 
   /**
    * Builds a Redis key based on the given OTP flow type and code.
    * The key is in the format: `otp:{context}:{channel}:{code}`
    * @param flowType The OTP flow type.
-   * @param code The OTP code.
+   * @param verificationValue The verification value (email or phone number).
    * @returns The built Redis key.
    * @example buildOtpRedisKey(EOtpFlowType.ADD_EMAIL, '123456') → "otp:registration:email:123456"
    */
-  private buildOtpRedisKey(flowType: EOtpFlowType, code: string): string {
+  private buildOtpRedisKey(flowType: EOtpFlowType, verificationValue: string): string {
     const metadata = OTP_FLOW_CONFIG[flowType];
 
-    return `otp:${metadata.context}:${metadata.channel}:${code}`;
+    return `otp:${metadata.context}:${metadata.channel}:${verificationValue}`;
   }
 
   private getDeliveryChannel(flowType: EOtpFlowType): string {
@@ -48,7 +50,7 @@ export class OtpService {
    */
   public async sendOtpCode(flowType: EOtpFlowType, verificationValue: string): Promise<void> {
     const otpCode = generateCode();
-    const redisKey = this.buildOtpRedisKey(flowType, otpCode);
+    const redisKey = this.buildOtpRedisKey(flowType, verificationValue);
 
     const confirmationOtpData: IVerificationOtpData = {
       otpFlowType: flowType,
@@ -61,9 +63,36 @@ export class OtpService {
 
     if (ENVIRONMENT === EEnvironment.LOCAL) {
       this.lokiLogger.debug(`Sending OTP code ${otpCode} to ${verificationValue} via ${channel}`);
-    } else {
+    } else if (
+      flowType === EOtpFlowType.ADD_PHONE_NUMBER ||
+      flowType === EOtpFlowType.LOGIN ||
+      flowType === EOtpFlowType.CHANGE_PHONE_NUMBER
+    ) {
       await this.awsEndUserMessagingService.sendVerificationCode(verificationValue, otpCode);
+    } else {
+      await this.emailsService.sendConfirmationCode(verificationValue, otpCode);
     }
+  }
+
+  /**
+   * Creates an OTP code in Redis WITHOUT sending it (for test/mock accounts).
+   * @param flowType The OTP flow type.
+   * @param verificationValue The verification value (e.g. email address or phone number).
+   * @param code The predefined OTP code to store.
+   * @returns A promise that resolves when the OTP code has been stored.
+   */
+  public async createOtpWithoutSending(flowType: EOtpFlowType, verificationValue: string, code: string): Promise<void> {
+    const redisKey = this.buildOtpRedisKey(flowType, verificationValue);
+
+    const confirmationOtpData: IVerificationOtpData = {
+      otpFlowType: flowType,
+      verificationValue: verificationValue,
+      code,
+    };
+    await this.redisService.setJson(redisKey, confirmationOtpData, this.VERIFICATION_OTP_TTL);
+
+    const channel = this.getDeliveryChannel(flowType);
+    this.lokiLogger.debug(`[MOCK] Created OTP code ${code} for ${verificationValue} via ${channel}`);
   }
 
   /**
@@ -76,7 +105,7 @@ export class OtpService {
    * @throws BadRequestException if the OTP code is invalid or the verification value does not match.
    */
   public async verifyOtpCode(flowType: EOtpFlowType, verificationValue: string, code: string): Promise<boolean> {
-    const redisKey = this.buildOtpRedisKey(flowType, code);
+    const redisKey = this.buildOtpRedisKey(flowType, verificationValue);
     const cachedData = await this.redisService.getJson<IVerificationOtpData>(redisKey);
 
     if (!cachedData) {

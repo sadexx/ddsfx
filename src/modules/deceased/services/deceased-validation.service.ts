@@ -1,7 +1,8 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { UpdateDeceasedProfileDto } from 'src/modules/deceased/common/dto';
+import { CreateDeceasedMediaContentDto, UpdateDeceasedProfileDto } from 'src/modules/deceased/common/dto';
 import {
+  TCreateDeceasedMediaContent,
   TCreateDeceasedProfileUser,
   TEnsureUserProfile,
   TSubscribeDeceasedProfileUser,
@@ -11,6 +12,7 @@ import {
 import { DeceasedQueryOptionsService } from 'src/modules/deceased/services';
 import { DeceasedSubscription } from 'src/modules/deceased/entities';
 import { Repository } from 'typeorm';
+import { HelperService } from 'src/modules/helper/services';
 
 @Injectable()
 export class DeceasedValidationService {
@@ -18,6 +20,7 @@ export class DeceasedValidationService {
     @InjectRepository(DeceasedSubscription)
     private readonly deceasedSubscriptionRepository: Repository<DeceasedSubscription>,
     private readonly deceasedQueryOptionsService: DeceasedQueryOptionsService,
+    private readonly helperService: HelperService,
   ) {}
 
   /**
@@ -59,6 +62,23 @@ export class DeceasedValidationService {
 
     if (deceasedSubscriptionExists) {
       throw new BadRequestException('You are already subscribed to this deceased profile');
+    }
+  }
+
+  /**
+   ** DeceasedMediaContentService
+   */
+
+  public async validateCreateDeceasedMediaContent(
+    dto: CreateDeceasedMediaContentDto,
+    deceased: TCreateDeceasedMediaContent,
+  ): Promise<void> {
+    const MEDIA_CONTENT_LIMIT: number = 5;
+
+    await this.helperService.ensureFilesExist([dto]);
+
+    if (deceased.deceasedMediaContents.length >= MEDIA_CONTENT_LIMIT) {
+      throw new BadRequestException('You have reached the media content limit');
     }
   }
 

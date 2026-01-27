@@ -5,7 +5,7 @@ import { SearchQueryDto } from 'src/modules/search-engine-logic/common/dto';
 import { SearchEngineQueryOptionsService } from 'src/modules/search-engine-logic/services/search-engine-query-options.service';
 import { IPersonOutput } from 'src/modules/search-engine-logic/common/output';
 import { EOpenSearchIndexType } from 'src/libs/opensearch/common/enums';
-import { IMessageOutput } from 'src/common/outputs';
+import { MessageOutput } from 'src/common/outputs';
 import { RedisService } from 'src/libs/redis/services';
 import { NUMBER_OF_MINUTES_IN_HOUR, NUMBER_OF_SECONDS_IN_MINUTE } from 'src/common/constants';
 import { SettingsService } from 'src/modules/settings/services';
@@ -24,7 +24,7 @@ export class SearchEngineLogicService {
     private readonly settingsService: SettingsService,
   ) {}
 
-  public async createMemorySeedData(): Promise<IMessageOutput> {
+  public async createMemorySeedData(): Promise<MessageOutput> {
     await this.externalSyncService.seedData();
 
     return { message: 'Seed data created successfully' };

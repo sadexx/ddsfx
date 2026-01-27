@@ -10,6 +10,8 @@ import { ValuesOf } from 'src/common/types';
 export const EFileExtension = {
   JPEG: '.jpeg',
   JPG: '.jpg',
+  PNG: '.png',
+  MP4: '.mp4',
 } as const;
 
 export type EFileExtension = ValuesOf<typeof EFileExtension>;

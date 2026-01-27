@@ -1,5 +1,12 @@
 import { Type } from '@sinclair/typebox';
-import { DayPattern, MonthPattern, StandardStringPattern, UUIDPattern, YearPattern } from 'src/common/validators';
+import {
+  DayPattern,
+  ExtendedStringPattern,
+  MonthPattern,
+  StandardStringPattern,
+  UUIDPattern,
+  YearPattern,
+} from 'src/common/validators';
 
 export class CreateDeceasedCorrectionDto {
   deceasedId: string;
@@ -28,7 +35,7 @@ export class CreateDeceasedCorrectionDto {
       deathYear: Type.Optional(YearPattern),
       deathMonth: Type.Optional(MonthPattern),
       deathDay: Type.Optional(DayPattern),
-      comment: Type.Optional(Type.String({ minLength: 5, maxLength: 1000 })),
+      comment: Type.Optional(ExtendedStringPattern),
     },
     { additionalProperties: false },
   );

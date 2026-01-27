@@ -57,10 +57,12 @@ export const DeceasedHobby = new EntitySchema<DeceasedHobby>({
         joinColumn: {
           name: 'deceased_hobby_id',
           referencedColumnName: 'id',
+          foreignKeyConstraintName: 'FK_deceased_hobby_tags_deceased_hobbies',
         },
         inverseJoinColumn: {
           name: 'deceased_hobby_tag_id',
           referencedColumnName: 'id',
+          foreignKeyConstraintName: 'FK_deceased_hobbies_deceased_hobby_tags',
         },
       },
       onDelete: 'CASCADE',

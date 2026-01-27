@@ -139,8 +139,6 @@ export class DeceasedSubscriptionService {
   ): Promise<TSubscribeDeceasedProfileDeceased> {
     let deceased = await findOneTyped<TSubscribeDeceasedProfileDeceased>(this.deceasedRepository, queryOptions);
 
-    console.log(deceased);
-
     if (!deceased) {
       this.lokiLogger.log(`Deceased ${deceasedId} not found in city, fetching from OS`);
       deceased = await this.deceasedSyncService.createDeceasedFromIndex(deceasedId);

@@ -9,7 +9,8 @@ import { ValuesOf } from 'src/common/types';
  */
 export const EContentType = {
   IMAGE_JPEG: 'image/jpeg',
-  IMAGE_WEBP: 'image/webp',
+  IMAGE_PNG: 'image/png',
+  VIDEO_MP4: 'video/mp4',
 } as const;
 
 export type EContentType = ValuesOf<typeof EContentType>;

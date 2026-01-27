@@ -7,6 +7,9 @@
     "tsConfigPath": "tsconfig.build.json",
     "deleteOutDir": true,
     "watchAssets": true,
-    "assets": [{ "include": "modules/deep-link/common/.well-known/**/*", "outDir": "dist/src" }]
+    "assets": [
+      { "include": "modules/deep-link/common/.well-known/**/*", "outDir": "dist/src" },
+      { "include": "libs/emailer/common/templates/**/*", "outDir": "dist/src" }
+    ]
   }
 }

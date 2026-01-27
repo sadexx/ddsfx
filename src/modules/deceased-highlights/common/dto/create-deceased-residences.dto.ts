@@ -10,14 +10,17 @@ export class CreateDeceasedResidenceDto {
   startYear?: number;
   endYear?: number;
 
-  static readonly schema = Type.Object({
-    city: StandardStringPattern,
-    isBirthPlace: Type.Optional(Type.Boolean()),
-    country: Type.Optional(StandardStringPattern),
-    description: Type.Optional(StandardStringPattern),
-    startYear: Type.Optional(YearPattern),
-    endYear: Type.Optional(YearPattern),
-  });
+  static readonly schema = Type.Object(
+    {
+      city: StandardStringPattern,
+      isBirthPlace: Type.Optional(Type.Boolean()),
+      country: Type.Optional(StandardStringPattern),
+      description: Type.Optional(StandardStringPattern),
+      startYear: Type.Optional(YearPattern),
+      endYear: Type.Optional(YearPattern),
+    },
+    { additionalProperties: false },
+  );
 
   static validate(data: CreateDeceasedResidenceDto): void {
     if (data.startYear && data.endYear && data.startYear > data.endYear) {
@@ -29,9 +32,10 @@ export class CreateDeceasedResidenceDto {
 export class CreateDeceasedResidencesDto {
   residences: CreateDeceasedResidenceDto[];
 
-  static readonly schema = Type.Object({
-    residences: Type.Array(CreateDeceasedResidenceDto.schema, { minItems: 1 }),
-  });
+  static readonly schema = Type.Object(
+    { residences: Type.Array(CreateDeceasedResidenceDto.schema, { minItems: 1 }) },
+    { additionalProperties: false },
+  );
 
   static validate(data: CreateDeceasedResidencesDto): void {
     for (const residence of data.residences) {

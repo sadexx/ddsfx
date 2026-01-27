@@ -30,7 +30,9 @@ export type TGetDeceasedHobbyTags = QueryResultType<DeceasedHobbyTagCategory, ty
 export const CreateDeceasedHobbyQuery = {
   select: {
     id: true,
+    deceasedHobbies: { id: true },
   } as const satisfies FindOptionsSelect<Deceased>,
+  relations: { deceasedHobbies: true } as const satisfies FindOptionsRelations<Deceased>,
 };
 export type TCreateDeceasedHobby = QueryResultType<Deceased, typeof CreateDeceasedHobbyQuery.select>;
 

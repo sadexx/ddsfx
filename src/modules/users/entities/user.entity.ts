@@ -1,9 +1,11 @@
 import { Session } from 'src/modules/sessions/entities';
-import { UserProfile, UserRole } from 'src/modules/users/entities';
+import { UserAvatar, UserProfile, UserRole } from 'src/modules/users/entities';
 import { ComplaintForm } from 'src/modules/complaint-form/entities';
 import { EntitySchema } from 'typeorm';
 import { DeceasedSubscription } from 'src/modules/deceased/entities';
 import { DeceasedCorrection } from 'src/modules/deceased-correction/entities';
+import { Post } from 'src/modules/posts/entities';
+import { ERegistrationStrategy } from 'src/modules/auth/common/enums';
 
 export interface User {
   id: string;
@@ -14,11 +16,14 @@ export interface User {
   complaintsReported: ComplaintForm[];
   complaintsReceived: ComplaintForm[];
   deceasedCorrections: DeceasedCorrection[];
+  posts: Post[];
+  avatar: UserAvatar | null;
   email: string | null;
   isEmailVerified: boolean;
   passwordHash: string | null;
   phoneNumber: string | null;
   isPhoneNumberVerified: boolean;
+  registrationStrategy: ERegistrationStrategy;
   creationDate: Date;
   updatingDate: Date;
 }
@@ -57,6 +62,11 @@ export const User = new EntitySchema<User>({
     isPhoneNumberVerified: {
       type: 'boolean',
       name: 'is_phone_number_verified',
+    },
+    registrationStrategy: {
+      type: 'enum',
+      name: 'registration_strategy',
+      enum: ERegistrationStrategy,
     },
     creationDate: {
       type: 'timestamptz',
@@ -103,6 +113,16 @@ export const User = new EntitySchema<User>({
     deceasedCorrections: {
       type: 'one-to-many',
       target: 'DeceasedCorrection',
+      inverseSide: 'user',
+    },
+    posts: {
+      type: 'one-to-many',
+      target: 'Post',
+      inverseSide: 'user',
+    },
+    avatar: {
+      type: 'one-to-one',
+      target: 'UserAvatar',
       inverseSide: 'user',
     },
   },

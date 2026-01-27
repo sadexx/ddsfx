@@ -20,9 +20,17 @@ export type TConstructAndCreateDeceasedSubscriptionDeceased = Pick<Deceased, 'id
 export const GetMyDeceasedSubscriptionsQuery = {
   select: {
     id: true,
-    deceased: { id: true, firstName: true, lastName: true, middleName: true },
+    deceased: {
+      id: true,
+      firstName: true,
+      lastName: true,
+      middleName: true,
+      deceasedMediaContents: { id: true, memoryFileKey: true, isPrimary: true, file: { id: true, fileKey: true } },
+    },
   } as const satisfies FindOptionsSelect<DeceasedSubscription>,
-  relations: { deceased: true } as const satisfies FindOptionsRelations<DeceasedSubscription>,
+  relations: {
+    deceased: { deceasedMediaContents: { file: true } },
+  } as const satisfies FindOptionsRelations<DeceasedSubscription>,
 };
 export type TGetMyDeceasedSubscriptions = QueryResultType<
   DeceasedSubscription,
@@ -33,10 +41,16 @@ export const GetDeceasedSubscriptionsQuery = {
   select: {
     id: true,
     kinshipType: true,
-    user: { id: true, profile: { firstName: true, lastName: true, middleName: true } },
+    user: {
+      id: true,
+      profile: { firstName: true, lastName: true, middleName: true },
+      avatar: { id: true, file: { id: true, fileKey: true } },
+    },
     creationDate: true,
   } as const satisfies FindOptionsSelect<DeceasedSubscription>,
-  relations: { user: { profile: true } } as const satisfies FindOptionsRelations<DeceasedSubscription>,
+  relations: {
+    user: { profile: true, avatar: { file: true } },
+  } as const satisfies FindOptionsRelations<DeceasedSubscription>,
 };
 export type TGetDeceasedSubscriptions = QueryResultType<
   DeceasedSubscription,
@@ -47,10 +61,16 @@ export const GetDeceasedSubscriptionQuery = {
   select: {
     id: true,
     kinshipType: true,
-    user: { id: true, profile: { firstName: true, lastName: true, middleName: true } },
+    user: {
+      id: true,
+      profile: { firstName: true, lastName: true, middleName: true },
+      avatar: { id: true, file: { id: true, fileKey: true } },
+    },
     creationDate: true,
   } as const satisfies FindOptionsSelect<DeceasedSubscription>,
-  relations: { user: { profile: true } } as const satisfies FindOptionsRelations<DeceasedSubscription>,
+  relations: {
+    user: { profile: true, avatar: { file: true } },
+  } as const satisfies FindOptionsRelations<DeceasedSubscription>,
 };
 export type TGetDeceasedSubscription = QueryResultType<
   DeceasedSubscription,

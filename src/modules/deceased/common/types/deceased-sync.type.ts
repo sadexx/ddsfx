@@ -28,10 +28,12 @@ export const LoadDeceasedWithRelationsQuery = {
       cemetery: { id: true, name: true, address: { id: true, region: true } },
     },
     deceasedSubscriptions: { id: true, creationDate: true },
+    deceasedMediaContents: { id: true, isPrimary: true, memoryFileKey: true, file: { id: true, fileKey: true } },
   } as const satisfies FindOptionsSelect<Deceased>,
   relations: {
     graveLocation: { cemetery: { address: true } },
     deceasedSubscriptions: true,
+    deceasedMediaContents: { file: true },
   } as const satisfies FindOptionsRelations<Deceased>,
 };
 export type TLoadDeceasedWithRelations = QueryResultType<Deceased, typeof LoadDeceasedWithRelationsQuery.select>;

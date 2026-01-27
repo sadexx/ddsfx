@@ -17,7 +17,7 @@ import {
 import { EAuthProvider } from 'src/modules/auth/common/enums';
 import { OneRoleLoginOutput } from 'src/modules/auth/common/outputs';
 import { IOpaqueTokenData, ITokenUserPayload } from 'src/libs/tokens/common/interfaces';
-import { IMessageOutput } from 'src/common/outputs';
+import { MessageOutput } from 'src/common/outputs';
 
 @Injectable()
 export class AuthService {
@@ -34,7 +34,7 @@ export class AuthService {
     return await this.verifyEmailCredentials(clientInfo, dto);
   }
 
-  public async loginPhoneNumber(clientInfo: IClientInfo, dto: LoginPhoneNumberDto): Promise<IMessageOutput> {
+  public async loginPhoneNumber(clientInfo: IClientInfo, dto: LoginPhoneNumberDto): Promise<MessageOutput> {
     const account = await this.getAccountByIdentity(dto.phoneNumber, EAuthProvider.PHONE_NUMBER);
 
     await this.otpLoginRepository.createPendingSession(clientInfo, dto, account.id);

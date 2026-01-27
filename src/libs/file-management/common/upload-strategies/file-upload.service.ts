@@ -6,14 +6,13 @@ import { Readable } from 'stream';
 import { fileTypeFromBuffer } from 'file-type';
 import { generateUuidV7 } from 'src/common/utils';
 import { AwsS3Service } from 'src/libs/aws/s3/services';
-import { FOLDER_PATH_MAP } from 'src/libs/file-management/common/constants';
-import { IFile } from 'src/libs/file-management/common/interfaces';
+import { FILE_CONFIG, FOLDER_PATH_MAP } from 'src/libs/file-management/common/constants';
+import { IFile, IFileUploadContext } from 'src/libs/file-management/common/interfaces';
 import { EContentType, EFileExtension, EFileType } from 'src/libs/file-management/common/enums';
 import { BucketLocationConstraint, StorageClass } from '@aws-sdk/client-s3';
 import { EnvConfig } from 'src/config/common/types';
 import { ConfigService } from '@nestjs/config';
 import { ENV_CONFIG_TOKEN } from 'src/config/common/constants';
-import { FILE_SIZE_LIMIT } from 'src/common/constants';
 import { PassThrough } from 'node:stream';
 
 @Injectable()
@@ -59,7 +58,7 @@ export class FileUploadService {
    * @throws {ServiceUnavailableException} When S3 upload fails (thrown by storage service)
    *
    */
-  public async uploadFile(data: MultipartFile, category: EFileType): Promise<IFile> {
+  public async uploadFile(uploadContext: IFileUploadContext, data: MultipartFile, category: EFileType): Promise<IFile> {
     try {
       const { stream, detectedMimeType, detectedExtension } = await this.validateFileSignature(data);
       const uploadedFile: IFile = {
@@ -67,7 +66,11 @@ export class FileUploadService {
       };
 
       await this.storageService.uploadObject(uploadedFile.fileKey, stream, detectedMimeType);
+
       uploadedFile.size = data.file.bytesRead;
+      uploadContext.uploadedFile = uploadedFile;
+
+      this.validateFileSize(data.file.bytesRead, detectedMimeType);
 
       return uploadedFile;
     } catch (error) {
@@ -119,9 +122,7 @@ export class FileUploadService {
 
         uploadedFiles.push(uploadedFile);
 
-        if (currentSize > FILE_SIZE_LIMIT) {
-          throw new BadRequestException('File size exceeds the maximum limit');
-        }
+        this.validateFileSize(currentSize, detectedMimeType);
       } catch (error) {
         if (filePart.file && !filePart.file.destroyed) {
           filePart.file.destroy();
@@ -447,5 +448,34 @@ export class FileUploadService {
     originalStream.pipe(newStream);
 
     return newStream;
+  }
+
+  /**
+   * Validates file size against category-specific limits.
+   *
+   * @description
+   * Enforces different size restrictions based on file category:
+   * - Images: IMAGE_SIZE
+   * - Videos: VIDEO_SIZE
+   *
+   * @param fileSize - Actual file size in bytes
+   * @param detectedMimeType - MIME type from magic number detection
+   *
+   * @throws {BadRequestException} When file exceeds category limit
+   */
+  private validateFileSize(fileSize: number, detectedMimeType: string): void {
+    let maxSize: number;
+
+    if (detectedMimeType.startsWith('image/')) {
+      maxSize = FILE_CONFIG.IMAGE_SIZE;
+    } else if (detectedMimeType.startsWith('video/')) {
+      maxSize = FILE_CONFIG.VIDEO_SIZE;
+    } else {
+      throw new BadRequestException(`Unsupported file type: ${detectedMimeType}`);
+    }
+
+    if (fileSize > maxSize) {
+      throw new BadRequestException('File size exceeds the maximum limit');
+    }
   }
 }

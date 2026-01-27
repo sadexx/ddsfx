@@ -7,5 +7,8 @@
  */
 export const enum EFolderPath {
   DECEASED_PHOTOS = 'media/deceased/photos',
-  DECEASED_VIDEOS = 'media/deceased/videos',
+  POST_PHOTOS = 'media/deceased/posts/photos',
+  POST_VIDEOS = 'media/deceased/posts/videos',
+  USER_AVATARS = 'media/users/avatars',
+  CONTACT_US = 'media/content-management/informational-pages/contact-us',
 }

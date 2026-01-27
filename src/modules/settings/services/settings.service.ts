@@ -6,7 +6,7 @@ import { UpdateSettingDto } from 'src/modules/settings/common/dto';
 import { RedisService } from 'src/libs/redis/services';
 import { LokiLogger } from 'src/libs/logger';
 import { NUMBER_OF_MINUTES_IN_DAY, NUMBER_OF_SECONDS_IN_MINUTE } from 'src/common/constants';
-import { IMessageOutput } from 'src/common/outputs';
+import { MessageOutput } from 'src/common/outputs';
 import { SettingsQuery, TSettings } from 'src/modules/settings/common/types';
 import { findManyTyped } from 'src/common/utils/find-many-typed';
 import { StrictOmit } from 'src/common/types';
@@ -59,7 +59,7 @@ export class SettingsService {
     return settings;
   }
 
-  public async updateSetting(dto: UpdateSettingDto): Promise<IMessageOutput> {
+  public async updateSetting(dto: UpdateSettingDto): Promise<MessageOutput> {
     await this.settingsRepository.updateAll(dto);
     await this.redisService.del(this.CACHE_KEY);
 

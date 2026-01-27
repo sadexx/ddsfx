@@ -5,7 +5,7 @@ import { ComplaintFormService } from 'src/modules/complaint-form/services';
 import { CurrentUser } from 'src/common/decorators';
 import { ITokenUserPayload } from 'src/libs/tokens/common/interfaces';
 import { ComplaintForm } from 'src/modules/complaint-form/entities';
-import { IMessageOutput } from 'src/common/outputs';
+import { MessageOutput } from 'src/common/outputs';
 import { RouteSchema } from '@nestjs/platform-fastify';
 import { ValidateAndTransformPipe } from 'src/common/pipes';
 
@@ -26,7 +26,7 @@ export class ComplaintFormController {
   async createComplaintForm(
     @CurrentUser() user: ITokenUserPayload,
     @Body(ValidateAndTransformPipe) dto: CreateComplaintFormDto,
-  ): Promise<IMessageOutput> {
+  ): Promise<MessageOutput> {
     return this.complaintFormService.createComplaintForm(user, dto);
   }
 }

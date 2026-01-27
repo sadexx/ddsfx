@@ -59,4 +59,29 @@ export class CloudFrontService {
       throw new ServiceUnavailableException('Failed to clear CDN cache');
     }
   }
+
+  public async invalidateCacheBatch(fileKeys: string[]): Promise<void> {
+    try {
+      const formattedPaths = fileKeys.map((key) => (key.startsWith('/') ? key : `/${key}`));
+
+      const command = new CreateInvalidationCommand({
+        DistributionId: this.DISTRIBUTION_ID,
+        InvalidationBatch: {
+          CallerReference: `${Date.now()}-batch-${fileKeys.length}`,
+          Paths: {
+            Quantity: formattedPaths.length,
+            Items: formattedPaths,
+          },
+        },
+      });
+
+      await this.cloudFrontClient.send(command);
+    } catch (error) {
+      this.lokiLogger.error(
+        `Failed to invalidate CloudFront cache for ${fileKeys.length} paths`,
+        (error as Error).stack,
+      );
+      throw new ServiceUnavailableException('Failed to clear CDN cache');
+    }
+  }
 }

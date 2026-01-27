@@ -9,3 +9,4 @@ export * from 'src/modules/deceased-highlights/common/dto/update-deceased-hobby.
 export * from 'src/modules/deceased-highlights/common/dto/create-deceased-biography.dto';
 export * from 'src/modules/deceased-highlights/common/dto/create-deceased-social-media-link.dto';
 export * from 'src/modules/deceased-highlights/common/dto/update-deceased-social-media-link.dto';
+export * from 'src/modules/deceased-highlights/common/dto/update-deceased-biography.dto';

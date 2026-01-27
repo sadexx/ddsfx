@@ -1,13 +1,13 @@
-import { BadRequestException, Body, Controller, Post, UseGuards, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Post, UseGuards, UseInterceptors } from '@nestjs/common';
 import { OpaqueToken } from 'src/common/decorators';
-import { OpqRegistrationGuard } from 'src/libs/guards/common/guards';
+import { JwtFullAccessGuard, OpqRegistrationGuard } from 'src/libs/guards/common/guards';
 import { OtpVerificationService } from 'src/modules/otp/services';
 import { IOpaqueTokenData } from 'src/libs/tokens/common/interfaces';
 import { VerifyEmailDto, VerifyPhoneNumberDto } from 'src/modules/otp/common/dto';
 import { SetCookiesInterceptor } from 'src/modules/auth/common/interceptors';
 import { IOtpVerificationOutput } from 'src/libs/temporal-state/common/outputs';
 import { RouteSchema } from '@nestjs/platform-fastify';
-import { IMessageOutput } from 'src/common/outputs';
+import { MessageOutput } from 'src/common/outputs';
 
 @Controller('otp')
 export class OtpVerificationController {
@@ -19,9 +19,7 @@ export class OtpVerificationController {
   async verifyRegistrationEmail(
     @OpaqueToken() tokenDto: IOpaqueTokenData,
     @Body() dto: VerifyEmailDto,
-  ): Promise<IMessageOutput> {
-    throw new BadRequestException('Verifying email is currently disabled.');
-
+  ): Promise<MessageOutput> {
     return await this.otpVerificationService.verifyRegistrationEmail(tokenDto, dto);
   }
 
@@ -31,7 +29,7 @@ export class OtpVerificationController {
   async verifyRegistrationPhoneNumber(
     @OpaqueToken() tokenDto: IOpaqueTokenData,
     @Body() dto: VerifyPhoneNumberDto,
-  ): Promise<IMessageOutput> {
+  ): Promise<MessageOutput> {
     return await this.otpVerificationService.verifyRegistrationPhoneNumber(tokenDto, dto);
   }
 
@@ -40,5 +38,19 @@ export class OtpVerificationController {
   @UseInterceptors(SetCookiesInterceptor)
   async verifyLogin(@Body() dto: VerifyPhoneNumberDto): Promise<IOtpVerificationOutput> {
     return await this.otpVerificationService.verifyLoginOtp(dto);
+  }
+
+  @UseGuards(JwtFullAccessGuard)
+  @Post('verification/change-phone-number')
+  @RouteSchema({ body: VerifyPhoneNumberDto.schema })
+  async verifyChangePhoneNumberOtp(@Body() dto: VerifyPhoneNumberDto): Promise<void> {
+    return await this.otpVerificationService.verifyChangePhoneNumberOtp(dto);
+  }
+
+  @UseGuards(JwtFullAccessGuard)
+  @Post('verification/change-email')
+  @RouteSchema({ body: VerifyEmailDto.schema })
+  async verifyChangeEmailOtp(@Body() dto: VerifyEmailDto): Promise<void> {
+    return await this.otpVerificationService.verifyChangeEmailOtp(dto);
   }
 }

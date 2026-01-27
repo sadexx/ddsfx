@@ -5,8 +5,11 @@ export class CreateDeceasedHobbyDto {
   description: string;
   tagIds?: string[];
 
-  static readonly schema = Type.Object({
-    description: StandardStringPattern,
-    tagIds: Type.Optional(Type.Array(Type.String(UUIDPattern), { uniqueItems: true, minItems: 1, maxItems: 20 })),
-  });
+  static readonly schema = Type.Object(
+    {
+      description: StandardStringPattern,
+      tagIds: Type.Optional(Type.Array(Type.String(UUIDPattern), { uniqueItems: true, minItems: 1, maxItems: 20 })),
+    },
+    { additionalProperties: false },
+  );
 }

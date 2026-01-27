@@ -104,10 +104,13 @@ export class CemeteryService {
     cemetery: TUpdateDeceasedProfileCemetery | null,
     dto?: UpdateGraveLocationDto,
   ): StrictOmit<IGraveLocation, 'deceased'> {
+    const cemeteryChanged = cemetery && cemetery.id !== existingGraveLocation.cemetery.id;
+
     return {
-      latitude: dto?.latitude ?? existingGraveLocation.latitude,
-      longitude: dto?.longitude ?? existingGraveLocation.longitude,
-      altitude: dto?.altitude ?? existingGraveLocation.altitude,
+      latitude: dto?.latitude !== undefined ? dto.latitude : cemeteryChanged ? null : existingGraveLocation.latitude,
+      longitude:
+        dto?.longitude !== undefined ? dto.longitude : cemeteryChanged ? null : existingGraveLocation.longitude,
+      altitude: dto?.altitude !== undefined ? dto.altitude : cemeteryChanged ? null : existingGraveLocation.altitude,
       cemetery: cemetery ?? existingGraveLocation.cemetery,
     };
   }
