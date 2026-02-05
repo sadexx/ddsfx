@@ -1,6 +1,7 @@
 import { Type } from '@sinclair/typebox';
 import { DayPattern, MonthPattern, StandardStringPattern, UUIDPattern, YearPattern } from 'src/common/validators';
 import { UpdateGraveLocationDto } from 'src/modules/cemetery/common/dto';
+import { validateBirthBeforeDeath, validateDateConfirmationRequirement } from 'src/modules/deceased/common/validators';
 
 export class UpdateDeceasedProfileDto {
   firstName?: string;
@@ -12,6 +13,7 @@ export class UpdateDeceasedProfileDto {
   birthDay?: number | null;
   birthMonth?: number | null;
   birthYear?: number | null;
+  confirmInvalidDate?: boolean;
   cemeteryId?: string;
   graveLocation?: UpdateGraveLocationDto;
 
@@ -26,9 +28,29 @@ export class UpdateDeceasedProfileDto {
       birthDay: Type.Optional(Type.Union([DayPattern, Type.Null()])),
       birthMonth: Type.Optional(Type.Union([MonthPattern, Type.Null()])),
       birthYear: Type.Optional(Type.Union([YearPattern, Type.Null()])),
+      confirmInvalidDate: Type.Optional(Type.Boolean()),
       cemeteryId: Type.Optional(UUIDPattern),
       graveLocation: Type.Optional(UpdateGraveLocationDto.schema),
     },
     { additionalProperties: false },
   );
+
+  static validate(data: UpdateDeceasedProfileDto): void {
+    if (data.birthDay && data.birthMonth && data.birthYear) {
+      validateDateConfirmationRequirement(data.birthDay, data.birthMonth, data.birthYear, data.confirmInvalidDate);
+    }
+
+    if (data.deathDay && data.deathMonth && data.deathYear) {
+      validateDateConfirmationRequirement(data.deathDay, data.deathMonth, data.deathYear, data.confirmInvalidDate);
+    }
+
+    validateBirthBeforeDeath(
+      data.birthYear,
+      data.birthMonth,
+      data.birthDay,
+      data.deathYear,
+      data.deathMonth,
+      data.deathDay,
+    );
+  }
 }

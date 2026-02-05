@@ -10,6 +10,7 @@ export const EFileType = {
   DECEASED_PHOTOS: 'deceased-photos',
   POST_PHOTOS: 'post-photos',
   POST_VIDEOS: 'post-videos',
+  POST_TEMPLATES: 'post-templates',
   USER_AVATARS: 'user-avatars',
   CONTACT_US: 'contact-us',
 } as const;

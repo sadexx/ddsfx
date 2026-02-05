@@ -50,6 +50,7 @@ export const ContactMethod = new EntitySchema<ContactMethod>({
         foreignKeyConstraintName: 'FK_contact_methods_files',
       },
       nullable: false,
+      onDelete: 'CASCADE',
     },
   },
 });

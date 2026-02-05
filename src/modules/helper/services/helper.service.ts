@@ -22,6 +22,7 @@ export class HelperService {
         deceasedMediaContent: { id: IsNull() },
         userAvatar: { id: IsNull() },
         contactMethod: { id: IsNull() },
+        postTemplate: { id: IsNull() },
       },
     });
 

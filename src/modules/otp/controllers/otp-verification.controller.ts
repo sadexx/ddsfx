@@ -3,7 +3,7 @@ import { OpaqueToken } from 'src/common/decorators';
 import { JwtFullAccessGuard, OpqRegistrationGuard } from 'src/libs/guards/common/guards';
 import { OtpVerificationService } from 'src/modules/otp/services';
 import { IOpaqueTokenData } from 'src/libs/tokens/common/interfaces';
-import { VerifyEmailDto, VerifyPhoneNumberDto } from 'src/modules/otp/common/dto';
+import { VerifyEmailDto, VerifyPasswordResetDto, VerifyPhoneNumberDto } from 'src/modules/otp/common/dto';
 import { SetCookiesInterceptor } from 'src/modules/auth/common/interceptors';
 import { IOtpVerificationOutput } from 'src/libs/temporal-state/common/outputs';
 import { RouteSchema } from '@nestjs/platform-fastify';
@@ -52,5 +52,12 @@ export class OtpVerificationController {
   @RouteSchema({ body: VerifyEmailDto.schema })
   async verifyChangeEmailOtp(@Body() dto: VerifyEmailDto): Promise<void> {
     return await this.otpVerificationService.verifyChangeEmailOtp(dto);
+  }
+
+  @Post('verification/password-reset')
+  @RouteSchema({ body: VerifyPasswordResetDto.schema })
+  @UseInterceptors(SetCookiesInterceptor)
+  async verifyPasswordResetOtp(@Body() dto: VerifyPasswordResetDto): Promise<IOtpVerificationOutput> {
+    return await this.otpVerificationService.verifyPasswordResetOtp(dto);
   }
 }

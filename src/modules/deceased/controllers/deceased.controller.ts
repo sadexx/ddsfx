@@ -40,7 +40,7 @@ export class DeceasedController {
   @RouteSchema({ body: UpdateDeceasedProfileDto.schema, params: UUIDParamDto.schema })
   async updateDeceasedProfile(
     @Param() param: UUIDParamDto,
-    @Body() dto: UpdateDeceasedProfileDto,
+    @Body(ValidateAndTransformPipe) dto: UpdateDeceasedProfileDto,
     @CurrentUser() user: ITokenUserPayload,
   ): Promise<void> {
     return this.deceasedService.updateDeceasedProfile(param, dto, user);

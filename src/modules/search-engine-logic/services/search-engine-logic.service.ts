@@ -1,11 +1,8 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { OpenSearchService } from 'src/libs/opensearch/services';
-import { ExternalSyncService } from 'src/modules/external-sync/services';
 import { SearchQueryDto } from 'src/modules/search-engine-logic/common/dto';
 import { SearchEngineQueryOptionsService } from 'src/modules/search-engine-logic/services/search-engine-query-options.service';
 import { IPersonOutput } from 'src/modules/search-engine-logic/common/output';
-import { EOpenSearchIndexType } from 'src/libs/opensearch/common/enums';
-import { MessageOutput } from 'src/common/outputs';
 import { RedisService } from 'src/libs/redis/services';
 import { NUMBER_OF_MINUTES_IN_HOUR, NUMBER_OF_SECONDS_IN_MINUTE } from 'src/common/constants';
 import { SettingsService } from 'src/modules/settings/services';
@@ -19,16 +16,9 @@ export class SearchEngineLogicService {
   constructor(
     private readonly searchService: OpenSearchService,
     private readonly searchQueryOptionsService: SearchEngineQueryOptionsService,
-    private readonly externalSyncService: ExternalSyncService,
     private readonly redisService: RedisService,
     private readonly settingsService: SettingsService,
   ) {}
-
-  public async createMemorySeedData(): Promise<MessageOutput> {
-    await this.externalSyncService.seedData();
-
-    return { message: 'Seed data created successfully' };
-  }
 
   public async launchSearch(dto: SearchQueryDto, clientInfo: IClientInfo): Promise<IPersonOutput[]> {
     const cacheKey = `fast-search-requests:${clientInfo.ipAddress}`;
@@ -51,7 +41,7 @@ export class SearchEngineLogicService {
       }
     }
 
-    const queryOption = this.searchQueryOptionsService.buildSearchPeopleOptions(dto.query);
+    const queryOption = this.searchQueryOptionsService.buildSearchPeopleOptions(dto);
     const result = await this.searchService.search(queryOption);
 
     const people = result.hits.hits.map((hit) => ({
@@ -60,9 +50,5 @@ export class SearchEngineLogicService {
     }));
 
     return people;
-  }
-
-  public async deleteSeedData(): Promise<void> {
-    await this.searchService.deleteIndex(EOpenSearchIndexType.PEOPLE);
   }
 }

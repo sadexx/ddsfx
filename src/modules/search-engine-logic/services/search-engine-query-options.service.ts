@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { QueryContainer } from '@opensearch-project/opensearch/api/_types/_common.query_dsl.js';
 import { Search_Request } from '@opensearch-project/opensearch/api/index.js';
 import { EOpenSearchIndexType, EOpenSearchSortOrder } from 'src/libs/opensearch/common/enums';
+import { SearchQueryDto } from 'src/modules/search-engine-logic/common/dto';
 
 @Injectable()
 export class SearchEngineQueryOptionsService {
@@ -22,22 +23,35 @@ export class SearchEngineQueryOptionsService {
    * @param query - The search query (validated to be 3-100 characters)
    * @returns Search_Request - OpenSearch request configuration
    */
-  public buildSearchPeopleOptions(query: string): Search_Request {
-    const normalizedQuery = query.trim().toLowerCase();
+  public buildSearchPeopleOptions(dto: SearchQueryDto): Search_Request {
+    const normalizedQuery = dto.query.trim().toLowerCase();
     const queryLength = normalizedQuery.length;
 
     const shouldClauses = this.buildSearchClauses(normalizedQuery, queryLength);
+    const filterClauses = this.buildFilterClauses(dto);
+
+    const page = dto.page;
+    const pageSize = dto.pageSize;
+    const from = (page - 1) * pageSize;
 
     return {
       index: EOpenSearchIndexType.PEOPLE,
       body: {
         query: {
           bool: {
-            should: shouldClauses,
-            minimum_should_match: 1,
+            must: [
+              {
+                bool: {
+                  should: shouldClauses,
+                  minimum_should_match: 1,
+                },
+              },
+            ],
+            ...(filterClauses.length > 0 && { filter: filterClauses }),
           },
         },
-        size: 10,
+        from: from,
+        size: pageSize,
         sort: [
           '_score',
           { 'lastName.keyword': { order: EOpenSearchSortOrder.ASC, missing: '_last' } },
@@ -97,6 +111,49 @@ export class SearchEngineQueryOptionsService {
     }
 
     return shouldClauses;
+  }
+
+  /**
+   * Builds filter clauses for optional parameters.
+   * Filters are applied in filter context (cached, don't affect scoring).
+   *
+   * @param dto - Search query DTO with optional filters
+   * @returns Array of filter clauses
+   */
+  private buildFilterClauses(dto: SearchQueryDto): QueryContainer[] {
+    const filters: QueryContainer[] = [];
+
+    if (dto.cemeteryName) {
+      filters.push({
+        term: { cemeteryName: { value: dto.cemeteryName.trim().toLowerCase() } },
+      });
+    }
+
+    if (dto.birthDay !== undefined) {
+      filters.push({ term: { birthDay: dto.birthDay } });
+    }
+
+    if (dto.birthMonth !== undefined) {
+      filters.push({ term: { birthMonth: dto.birthMonth } });
+    }
+
+    if (dto.birthYear !== undefined) {
+      filters.push({ term: { birthYear: dto.birthYear } });
+    }
+
+    if (dto.deathDay !== undefined) {
+      filters.push({ term: { deathDay: dto.deathDay } });
+    }
+
+    if (dto.deathMonth !== undefined) {
+      filters.push({ term: { deathMonth: dto.deathMonth } });
+    }
+
+    if (dto.deathYear !== undefined) {
+      filters.push({ term: { deathYear: dto.deathYear } });
+    }
+
+    return filters;
   }
 
   /**

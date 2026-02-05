@@ -1,11 +1,13 @@
 import { EntitySchema } from 'typeorm';
 import { Post } from 'src/modules/posts/entities/post.entity';
 import { File } from 'src/libs/file-management/entities';
+import { EPostMediaContentType } from 'src/modules/posts/common/enums';
 
 export interface PostMediaContent {
   id: string;
   post: Post;
   file: File;
+  contentType: EPostMediaContentType;
   order: number;
   creationDate: Date;
   updatingDate: Date;
@@ -21,6 +23,11 @@ export const PostMediaContent = new EntitySchema<PostMediaContent>({
       name: 'id',
       primaryKeyConstraintName: 'PK_post_media_contents',
       default: (): string => 'uuidv7()',
+    },
+    contentType: {
+      type: 'enum',
+      name: 'content_type',
+      enum: EPostMediaContentType,
     },
     order: {
       type: 'integer',

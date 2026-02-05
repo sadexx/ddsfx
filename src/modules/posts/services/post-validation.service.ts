@@ -5,7 +5,6 @@ import { Post } from 'src/modules/posts/entities';
 import { Deceased } from 'src/modules/deceased/entities';
 import { NUMBER_OF_HOURS_IN_DAY, NUMBER_OF_MILLISECONDS_IN_HOUR } from 'src/common/constants';
 import { TUpdatePost } from 'src/modules/posts/common/types';
-import { DeceasedSyncService } from 'src/modules/deceased/services';
 import { UpdatePostDto } from 'src/modules/posts/common/dto';
 
 @Injectable()
@@ -15,14 +14,13 @@ export class PostValidationService {
     private readonly postsRepository: Repository<Post>,
     @InjectRepository(Deceased)
     private readonly deceasedRepository: Repository<Deceased>,
-    private readonly createDeceasedFromIndex: DeceasedSyncService,
   ) {}
 
   public async ensureDeceasedExists(deceasedId: string): Promise<void> {
     const deceased = await this.deceasedRepository.exists({ where: { id: deceasedId } });
 
     if (!deceased) {
-      await this.createDeceasedFromIndex.createDeceasedFromIndex(deceasedId);
+      throw new NotFoundException(`Deceased not found`);
     }
   }
 

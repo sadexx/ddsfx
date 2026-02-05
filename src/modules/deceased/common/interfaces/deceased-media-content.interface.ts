@@ -4,7 +4,7 @@ import { TCreateDeceasedMediaContent } from 'src/modules/deceased/common/types';
 
 export interface IDeceasedMediaContent {
   contentType: EDeceasedMediaContentType;
-  isPrimary: boolean;
+  order: number;
   deceased: TCreateDeceasedMediaContent;
   file: File;
 }

@@ -13,7 +13,7 @@ export const GetPostQuery = {
       profile: { firstName: true, middleName: true, lastName: true },
       avatar: { id: true, file: { id: true, fileKey: true } },
     },
-    mediaContent: { id: true, order: true, file: { id: true, fileKey: true } },
+    mediaContent: { id: true, contentType: true, order: true, file: { id: true, fileKey: true } },
     replyToPost: {
       id: true,
       text: true,

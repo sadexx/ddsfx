@@ -12,5 +12,6 @@ import { UserAvatar } from 'src/modules/users/entities';
   imports: [TypeOrmModule.forFeature([File, UserAvatar]), AwsS3Module, CloudFrontModule],
   controllers: [FileManagementController],
   providers: [FileUploadService, FileManagementService, FileHandlerService],
+  exports: [FileManagementService],
 })
 export class FileManagementModule {}

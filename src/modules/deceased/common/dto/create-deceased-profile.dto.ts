@@ -3,6 +3,7 @@ import { Type } from '@sinclair/typebox';
 import { DayPattern, MonthPattern, StandardStringPattern, UUIDPattern, YearPattern } from 'src/common/validators';
 import { CreateGraveLocationDto } from 'src/modules/cemetery/common/dto';
 import { CreateDeceasedSubscriptionDto } from 'src/modules/deceased/common/dto';
+import { validateBirthBeforeDeath, validateDateConfirmationRequirement } from 'src/modules/deceased/common/validators';
 
 export class CreateDeceasedProfileDto {
   firstName?: string;
@@ -15,6 +16,7 @@ export class CreateDeceasedProfileDto {
   birthMonth?: number;
   birthYear?: number;
   cemeteryId?: string;
+  confirmInvalidDate?: boolean;
   graveLocation?: CreateGraveLocationDto;
   deceasedSubscription: CreateDeceasedSubscriptionDto;
 
@@ -30,6 +32,7 @@ export class CreateDeceasedProfileDto {
       birthMonth: Type.Optional(MonthPattern),
       birthYear: Type.Optional(YearPattern),
       cemeteryId: Type.Optional(UUIDPattern),
+      confirmInvalidDate: Type.Optional(Type.Boolean()),
       graveLocation: Type.Optional(CreateGraveLocationDto.schema),
       deceasedSubscription: CreateDeceasedSubscriptionDto.schema,
     },
@@ -40,5 +43,22 @@ export class CreateDeceasedProfileDto {
     if (data.graveLocation && !data.cemeteryId) {
       throw new BadRequestException('Cannot create grave location without cemetery');
     }
+
+    if (data.birthDay && data.birthMonth && data.birthYear) {
+      validateDateConfirmationRequirement(data.birthDay, data.birthMonth, data.birthYear, data.confirmInvalidDate);
+    }
+
+    if (data.deathDay && data.deathMonth && data.deathYear) {
+      validateDateConfirmationRequirement(data.deathDay, data.deathMonth, data.deathYear, data.confirmInvalidDate);
+    }
+
+    validateBirthBeforeDeath(
+      data.birthYear,
+      data.birthMonth,
+      data.birthDay,
+      data.deathYear,
+      data.deathMonth,
+      data.deathDay,
+    );
   }
 }

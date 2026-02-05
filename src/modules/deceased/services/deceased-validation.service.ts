@@ -13,6 +13,7 @@ import { DeceasedQueryOptionsService } from 'src/modules/deceased/services';
 import { DeceasedSubscription } from 'src/modules/deceased/entities';
 import { Repository } from 'typeorm';
 import { HelperService } from 'src/modules/helper/services';
+import { validateBirthBeforeDeath, validateDateConfirmationRequirement } from 'src/modules/deceased/common/validators';
 
 @Injectable()
 export class DeceasedValidationService {
@@ -45,6 +46,34 @@ export class DeceasedValidationService {
         throw new BadRequestException('latitude and longitude are required to create graveLocation');
       }
     }
+
+    this.validateDeceasedDates(dto, deceased);
+  }
+
+  private validateDeceasedDates(dto: UpdateDeceasedProfileDto, deceased: TUpdateDeceasedProfile): void {
+    const birthDay = dto.birthDay ?? deceased.birthDay;
+    const birthMonth = dto.birthMonth ?? deceased.birthMonth;
+    const birthYear = dto.birthYear ?? deceased.birthYear;
+
+    const deathDay = dto.deathDay ?? deceased.deathDay;
+    const deathMonth = dto.deathMonth ?? deceased.deathMonth;
+    const deathYear = dto.deathYear ?? deceased.deathYear;
+
+    if (dto.birthDay || dto.birthMonth || dto.birthYear) {
+      if (birthDay && birthMonth && birthYear) {
+        validateDateConfirmationRequirement(birthDay, birthMonth, birthYear, dto.confirmInvalidDate);
+      }
+    }
+
+    if (dto.deathDay || dto.deathMonth || dto.deathYear) {
+      if (deathDay && deathMonth && deathYear) {
+        validateDateConfirmationRequirement(deathDay, deathMonth, deathYear, dto.confirmInvalidDate);
+      }
+    }
+
+    if (dto.birthDay || dto.birthMonth || dto.birthYear || dto.deathDay || dto.deathMonth || dto.deathYear) {
+      validateBirthBeforeDeath(birthYear, birthMonth, birthDay, deathYear, deathMonth, deathDay);
+    }
   }
 
   /**
@@ -73,7 +102,7 @@ export class DeceasedValidationService {
     dto: CreateDeceasedMediaContentDto,
     deceased: TCreateDeceasedMediaContent,
   ): Promise<void> {
-    const MEDIA_CONTENT_LIMIT: number = 5;
+    const MEDIA_CONTENT_LIMIT: number = 10;
 
     await this.helperService.ensureFilesExist([dto]);
 

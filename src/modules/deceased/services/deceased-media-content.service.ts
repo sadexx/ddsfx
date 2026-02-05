@@ -11,11 +11,11 @@ import { EDeceasedMediaContentType } from 'src/modules/deceased/common/enums';
 import {
   DeceasedQueryOptionsService,
   DeceasedSubscriptionService,
-  DeceasedSyncService,
   DeceasedValidationService,
 } from 'src/modules/deceased/services';
 import { ITokenUserPayload } from 'src/libs/tokens/common/interfaces';
 import { TCreateDeceasedMediaContent } from 'src/modules/deceased/common/types';
+import { OpenSearchSyncService } from 'src/modules/external-sync/services';
 
 @Injectable()
 export class DeceasedMediaContentService {
@@ -27,7 +27,7 @@ export class DeceasedMediaContentService {
     private readonly deceasedQueryOptionsService: DeceasedQueryOptionsService,
     private readonly deceasedValidationService: DeceasedValidationService,
     private readonly deceasedSubscriptionService: DeceasedSubscriptionService,
-    private readonly deceasedSyncService: DeceasedSyncService,
+    private readonly openSearchSyncService: OpenSearchSyncService,
   ) {}
 
   public async createDeceasedMediaContent(
@@ -47,14 +47,18 @@ export class DeceasedMediaContentService {
 
     await this.constructAndCreateMediaContent(dto, deceased);
 
-    await this.deceasedSyncService.updateDeceasedIndex(deceased.id);
+    await this.openSearchSyncService.updateDeceasedIndex(deceased);
   }
 
   private async constructAndCreateMediaContent(
     dto: CreateDeceasedMediaContentDto,
     deceased: TCreateDeceasedMediaContent,
   ): Promise<void> {
-    const mediaContentDto = this.constructMediaContentDto(dto, deceased);
+    const contentType = this.determineDeceasedContentType();
+
+    await this.incrementMediaContentOrderForContentType(deceased.id, contentType);
+
+    const mediaContentDto = this.constructMediaContentDto(dto, deceased, contentType);
     await this.createMediaContent(mediaContentDto);
   }
 
@@ -63,15 +67,28 @@ export class DeceasedMediaContentService {
     await this.deceasedMediaContentRepository.save(newMediaContent);
   }
 
+  private async incrementMediaContentOrderForContentType(
+    deceasedId: string,
+    contentType: EDeceasedMediaContentType,
+  ): Promise<void> {
+    const orderField: keyof DeceasedMediaContent = 'order';
+    await this.deceasedMediaContentRepository.increment({ deceased: { id: deceasedId }, contentType }, orderField, 1);
+  }
+
+  private determineDeceasedContentType(): EDeceasedMediaContentType {
+    return EDeceasedMediaContentType.DECEASED_AVATAR;
+  }
+
   private constructMediaContentDto(
     dto: CreateDeceasedMediaContentDto,
     deceased: TCreateDeceasedMediaContent,
+    contentType: EDeceasedMediaContentType,
   ): IDeceasedMediaContent {
-    const isPrimary = !deceased.deceasedMediaContents.some((media) => media.isPrimary);
+    const INITIAL_ORDER: number = 0;
 
     return {
-      contentType: EDeceasedMediaContentType.UPLOADED_PHOTO,
-      isPrimary,
+      contentType,
+      order: INITIAL_ORDER,
       file: { id: dto.id } as File,
       deceased,
     };

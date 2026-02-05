@@ -2,6 +2,8 @@ import { Injectable, ServiceUnavailableException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import {
   CompleteMultipartUploadCommandOutput,
+  CopyObjectCommand,
+  CopyObjectCommandOutput,
   DeleteObjectCommand,
   DeleteObjectCommandOutput,
   DeleteObjectsCommand,
@@ -94,6 +96,21 @@ export class AwsS3Service {
     } catch (error) {
       this.lokiLogger.error(`Error deleting objects:${(error as Error).message}`, (error as Error).stack);
       throw new ServiceUnavailableException('Failed to delete the selected files');
+    }
+  }
+
+  public async copyObject(sourceKey: string, destinationKey: string): Promise<CopyObjectCommandOutput> {
+    try {
+      const copyObjectCommand = new CopyObjectCommand({
+        Bucket: this.S3_BUCKET_NAME,
+        CopySource: `/${this.S3_BUCKET_NAME}/${sourceKey}`,
+        Key: destinationKey,
+      });
+
+      return await this.s3Client.send(copyObjectCommand);
+    } catch (error) {
+      this.lokiLogger.error(`Error copying object:${(error as Error).message}`, (error as Error).stack);
+      throw new ServiceUnavailableException('Failed to copy object');
     }
   }
 

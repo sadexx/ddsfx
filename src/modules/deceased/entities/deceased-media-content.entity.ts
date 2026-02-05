@@ -6,10 +6,9 @@ import { File } from 'src/libs/file-management/entities';
 export interface DeceasedMediaContent {
   id: string;
   deceased: Deceased;
-  file: File | null;
+  file: File;
   contentType: EDeceasedMediaContentType;
-  memoryFileKey: string | null;
-  isPrimary: boolean;
+  order: number;
   creationDate: Date;
   updatingDate: Date;
 }
@@ -30,15 +29,9 @@ export const DeceasedMediaContent = new EntitySchema<DeceasedMediaContent>({
       name: 'content_type',
       enum: EDeceasedMediaContentType,
     },
-    memoryFileKey: {
-      type: 'varchar',
-      name: 'memory_file_key',
-      nullable: true,
-    },
-    isPrimary: {
-      type: 'boolean',
-      name: 'is_primary',
-      default: false,
+    order: {
+      type: 'integer',
+      name: 'order',
     },
     creationDate: {
       type: 'timestamptz',
@@ -71,7 +64,7 @@ export const DeceasedMediaContent = new EntitySchema<DeceasedMediaContent>({
         referencedColumnName: 'id',
         foreignKeyConstraintName: 'FK_deceased_media_contents_files',
       },
-      nullable: true,
+      nullable: false,
       onDelete: 'CASCADE',
     },
   },

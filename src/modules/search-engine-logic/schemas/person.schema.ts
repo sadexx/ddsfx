@@ -4,13 +4,14 @@ export class PersonSchema {
   gpsLatitude: number | null;
   gpsAltitude: number | null;
   gpsLongitude: number | null;
-  cemeteryLabel: string | null;
-  regionLabel: string | null;
-  regionLabelFull: string | null;
-  genderCode: string | null;
+  cemeteryName: string | null;
+  regionName: string | null;
+  regionFullName: string | null;
+  gender: string | null;
   firstName: string | null;
   lastName: string | null;
   middleName: string | null;
+  fullName: string;
   birthDate: Date | null;
   deathDate: Date | null;
   birthYear: number | null;
@@ -20,10 +21,11 @@ export class PersonSchema {
   deathMonth: number | null;
   deathDay: number | null;
   fileKey: string | null;
-  fullName: string;
+  portraitFileKey: string | null;
   deceasedSubscriptions: DeceasedSubscription[];
 }
 
 interface DeceasedSubscription {
   id: string;
+  fileKey: string | null;
 }

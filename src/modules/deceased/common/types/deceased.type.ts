@@ -26,7 +26,7 @@ export type TGetDeceasedProfile = Pick<
   cemetery: Pick<Cemetery, 'id' | 'name'> | null;
   graveLocation: Pick<GraveLocation, 'id' | 'latitude' | 'longitude' | 'altitude'> | null;
   deceasedSubscriptions: Pick<DeceasedSubscription, 'id'>[];
-  deceasedMediaContents: (Pick<DeceasedMediaContent, 'id' | 'memoryFileKey'> & {
+  deceasedMediaContents: (Pick<DeceasedMediaContent, 'id' | 'order'> & {
     file: Pick<File, 'id' | 'fileKey'> | null;
   })[];
 };

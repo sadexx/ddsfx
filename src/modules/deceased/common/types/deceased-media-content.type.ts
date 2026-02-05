@@ -9,7 +9,8 @@ import { Deceased } from 'src/modules/deceased/entities';
 export const CreateDeceasedMediaContentQuery = {
   select: {
     id: true,
-    deceasedMediaContents: { id: true, isPrimary: true, file: { id: true } },
+    status: true,
+    deceasedMediaContents: { id: true, contentType: true, file: { id: true } },
   } as const satisfies FindOptionsSelect<Deceased>,
   relations: { deceasedMediaContents: { file: true } } as const satisfies FindOptionsRelations<Deceased>,
 };

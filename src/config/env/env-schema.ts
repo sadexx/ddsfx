@@ -118,7 +118,27 @@ const validationRules: TConfigRules<EnvConfig> = {
     validate: validators.requiredString,
     transform: transforms.string,
   },
-  POSTGRES_EXTERNAL_DB_URL: {
+  POSTGRES_EXTERNAL_HOST: {
+    required: true,
+    validate: validators.requiredString,
+    transform: transforms.string,
+  },
+  POSTGRES_EXTERNAL_PORT: {
+    required: true,
+    validate: validators.numericString,
+    transform: transforms.number,
+  },
+  POSTGRES_EXTERNAL_USER: {
+    required: true,
+    validate: validators.requiredString,
+    transform: transforms.string,
+  },
+  POSTGRES_EXTERNAL_DB: {
+    required: true,
+    validate: validators.requiredString,
+    transform: transforms.string,
+  },
+  POSTGRES_EXTERNAL_PASSWORD: {
     required: true,
     validate: validators.requiredString,
     transform: transforms.string,

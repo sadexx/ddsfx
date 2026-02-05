@@ -23,6 +23,7 @@ export const FOLDER_PATH_MAP: Record<EFileType, string> = {
   [EFileType.DECEASED_PHOTOS]: EFolderPath.DECEASED_PHOTOS,
   [EFileType.POST_PHOTOS]: EFolderPath.POST_PHOTOS,
   [EFileType.POST_VIDEOS]: EFolderPath.POST_VIDEOS,
+  [EFileType.POST_TEMPLATES]: EFolderPath.POST_TEMPLATES,
   [EFileType.USER_AVATARS]: EFolderPath.USER_AVATARS,
   [EFileType.CONTACT_US]: EFolderPath.CONTACT_US,
 };

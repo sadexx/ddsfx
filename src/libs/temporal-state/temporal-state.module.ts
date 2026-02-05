@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import {
   OtpLoginRepository,
+  PasswordResetRepository,
   RegistrationRepository,
   UserContactInfoRepository,
 } from 'src/libs/temporal-state/repositories';
@@ -11,7 +12,7 @@ import { User } from 'src/modules/users/entities';
 @Module({
   imports: [TypeOrmModule.forFeature([User]), HashingModule],
   controllers: [],
-  providers: [RegistrationRepository, OtpLoginRepository, UserContactInfoRepository],
-  exports: [RegistrationRepository, OtpLoginRepository, UserContactInfoRepository],
+  providers: [RegistrationRepository, OtpLoginRepository, UserContactInfoRepository, PasswordResetRepository],
+  exports: [RegistrationRepository, OtpLoginRepository, UserContactInfoRepository, PasswordResetRepository],
 })
 export class TemporalStateModule {}

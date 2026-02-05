@@ -16,6 +16,7 @@ import {
 export class OtpLoginRepository {
   private readonly PENDING_PREFIX = 'otp-login:session';
   private readonly TOKEN_INDEX_PREFIX = 'otp-login:token';
+  private readonly ATTEMPT_PREFIX = 'otp-login:attempt';
   private readonly OTP_STATE_TTL = NUMBER_OF_SECONDS_IN_MINUTE * NUMBER_OF_MINUTES_IN_FIVE_MINUTES;
   private readonly HOURLY_OTP_LIMIT = 5;
   private readonly OTP_ATTEMPT_TTL = NUMBER_OF_SECONDS_IN_MINUTE * NUMBER_OF_MINUTES_IN_HOUR;
@@ -83,7 +84,7 @@ export class OtpLoginRepository {
   }
 
   public async checkOtpAttemptLimit(ipAddress: string): Promise<void> {
-    const redisKey = `otp-login-attempt:${ipAddress}`;
+    const redisKey = `${this.ATTEMPT_PREFIX}:${ipAddress}`;
     const attemptData = await this.redisService.getJson<{ ipAddress: string; attemptCount: number }>(redisKey);
 
     if (attemptData) {

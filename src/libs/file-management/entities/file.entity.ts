@@ -1,7 +1,7 @@
 import { EntitySchema } from 'typeorm';
-import { EContentType, EFileExtension, EFileType } from 'src/libs/file-management/common/enums';
+import { EBucketName, EContentType, EFileExtension, EFileType } from 'src/libs/file-management/common/enums';
 import { BucketLocationConstraint, StorageClass } from '@aws-sdk/client-s3';
-import { PostMediaContent } from 'src/modules/posts/entities';
+import { PostMediaContent, PostTemplate } from 'src/modules/posts/entities';
 import { DeceasedMediaContent } from 'src/modules/deceased/entities';
 import { UserAvatar } from 'src/modules/users/entities';
 import { ContactMethod } from 'src/modules/informational-pages/entities';
@@ -12,10 +12,12 @@ export interface File {
   deceasedMediaContent: DeceasedMediaContent | null;
   userAvatar: UserAvatar | null;
   contactMethod: ContactMethod | null;
+  postTemplate: PostTemplate | null;
   uploadedByUserId: string;
   storageType: string;
   storageClass: StorageClass;
   storageRegion: BucketLocationConstraint;
+  bucketName: EBucketName;
   category: EFileType;
   originalName: string;
   originalFullName: string;
@@ -56,6 +58,11 @@ export const File = new EntitySchema<File>({
       type: 'varchar',
       name: 'storage_region',
     },
+    bucketName: {
+      type: 'enum',
+      name: 'bucket_name',
+      enum: EBucketName,
+    },
     category: {
       type: 'enum',
       name: 'category',
@@ -80,7 +87,6 @@ export const File = new EntitySchema<File>({
     fileKey: {
       type: 'varchar',
       name: 'file_key',
-      unique: true,
     },
     size: {
       type: 'integer',
@@ -126,6 +132,11 @@ export const File = new EntitySchema<File>({
     contactMethod: {
       type: 'one-to-one',
       target: 'ContactMethod',
+      inverseSide: 'file',
+    },
+    postTemplate: {
+      type: 'one-to-one',
+      target: 'PostTemplate',
       inverseSide: 'file',
     },
   },

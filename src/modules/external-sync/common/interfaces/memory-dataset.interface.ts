@@ -1,13 +1,14 @@
-export interface ITransformedPerson {
-  id: string;
+import { EUserGender } from 'src/modules/users/common/enum';
+
+export interface ITransformedMemoryDataset {
   originalId: number | null;
   gpsLatitude: number | null;
   gpsAltitude: number | null;
   gpsLongitude: number | null;
-  cemeteryLabel: string | null;
-  regionLabel: string | null;
-  regionLabelFull: string | null;
-  genderCode: string | null;
+  cemeteryName: string | null;
+  regionName: string | null;
+  regionFullName: string | null;
+  gender: EUserGender;
   firstName: string | null;
   lastName: string | null;
   middleName: string | null;
@@ -19,20 +20,23 @@ export interface ITransformedPerson {
   deathYear: number | null;
   deathMonth: number | null;
   deathDay: number | null;
-  fileKey: string | null;
-  deceasedSubscriptions: ITransformedDeceasedSubscription[];
+  filePreviewFileKey: string | null;
+  additionalFilePreviewFileKey: string | null;
+  portraitFileKey: string | null;
+  memoryCreationDate: Date | null;
+  memoryUpdatingDate: Date | null;
 }
 
-export interface ITransformedDeceasedSubscription {
-  id: string;
-}
-
-export interface IRawPerson {
+export interface IRawMemoryDataset {
   file_id: number;
+  grave_object_id: number;
+  created_at: string | null | undefined;
+  updated_at: string | null | undefined;
   status_code: string | null | undefined;
   gps_latitude: string | null | undefined;
   gps_altitude: string | null | undefined;
   gps_longitude: string | null | undefined;
+  file_preview_file_key: string | null | undefined;
   cemetery_label: string | null | undefined;
   region_label: string | null | undefined;
   region_label_full: string | null | undefined;
@@ -48,5 +52,6 @@ export interface IRawPerson {
   death_year: string | null | undefined;
   death_month: string | null | undefined;
   death_day: string | null | undefined;
-  file_key: string | null | undefined;
+  additional_file_preview_file_key: string | null | undefined;
+  portrait_file_key: string | null | undefined;
 }

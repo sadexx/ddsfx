@@ -1,5 +1,5 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
-import { TUpdateFile } from 'src/libs/file-management/common/types';
+import { TDeleteFile, TUpdateFile } from 'src/libs/file-management/common/types';
 import { IFile } from 'src/libs/file-management/common/interfaces';
 import { NUMBER_OF_MILLISECONDS_IN_HOUR, NUMBER_OF_HOURS_IN_DAY } from 'src/common/constants';
 import { EFileType } from 'src/libs/file-management/common/enums';
@@ -16,8 +16,17 @@ export class FileHandlerService {
     private readonly userAvatarRepository: Repository<UserAvatar>,
   ) {}
 
-  public restrictFileUpdateRules(file: TUpdateFile, uploadedFile: IFile, query: UploadFileDto): void {
+  public restrictFileUpdateRules(
+    file: TUpdateFile,
+    uploadedFile: IFile,
+    query: UploadFileDto,
+    bucketName: string,
+  ): void {
     const twentyFourHoursAgo = new Date(Date.now() - NUMBER_OF_MILLISECONDS_IN_HOUR * NUMBER_OF_HOURS_IN_DAY);
+
+    if (file.bucketName !== bucketName) {
+      throw new BadRequestException('File stored in different bucket cannot be updated');
+    }
 
     if (
       (file.category === EFileType.POST_PHOTOS || file.category === EFileType.POST_VIDEOS) &&
@@ -32,6 +41,12 @@ export class FileHandlerService {
 
     if (file.category !== query.category) {
       throw new BadRequestException('File category cannot be changed during update');
+    }
+  }
+
+  public restrictFileDeleteRules(file: TDeleteFile, bucketName: string): void {
+    if (file.bucketName !== bucketName) {
+      throw new BadRequestException('File stored in different bucket cannot be deleted');
     }
   }
 

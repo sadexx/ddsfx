@@ -18,7 +18,6 @@ import { ITokenUserPayload } from 'src/libs/tokens/common/interfaces';
 import {
   DeceasedQueryOptionsService,
   DeceasedSubscriptionService,
-  DeceasedSyncService,
   DeceasedValidationService,
 } from 'src/modules/deceased/services';
 import { User } from 'src/modules/users/entities';
@@ -26,6 +25,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { UUIDParamDto } from 'src/common/dto';
 import { buildDate } from 'src/modules/deceased/common/helpers';
 import { EntityIdOutput } from 'src/common/outputs';
+import { OpenSearchSyncService } from 'src/modules/external-sync/services';
 
 @Injectable()
 export class DeceasedService {
@@ -40,7 +40,7 @@ export class DeceasedService {
     private readonly deceasedValidationService: DeceasedValidationService,
     private readonly deceasedSubscriptionService: DeceasedSubscriptionService,
     private readonly cemeteryService: CemeteryService,
-    private readonly deceasedSyncService: DeceasedSyncService,
+    private readonly openSearchSyncService: OpenSearchSyncService,
     private readonly dataSource: DataSource,
   ) {}
 
@@ -61,8 +61,6 @@ export class DeceasedService {
       return await this.constructAndCreateDeceasedProfile(manager, dto, currentUser, cemetery);
     });
 
-    await this.deceasedSyncService.indexDeceased(deceased.id);
-
     return { id: deceased.id };
   }
 
@@ -81,7 +79,7 @@ export class DeceasedService {
       await this.updateDeceased(manager, dto, deceased, cemetery);
     });
 
-    await this.deceasedSyncService.updateDeceasedIndex(deceased.id);
+    await this.openSearchSyncService.updateDeceasedIndex(deceased);
   }
 
   private async loadDeceasedProfileCreateEntities(
@@ -212,8 +210,8 @@ export class DeceasedService {
       birthDay: dto.birthDay !== undefined ? dto.birthDay : existingDeceased.birthDay,
       birthMonth: dto.birthMonth !== undefined ? dto.birthMonth : existingDeceased.birthMonth,
       birthYear: dto.birthYear !== undefined ? dto.birthYear : existingDeceased.birthYear,
-      deathDate: determinedDeathDate ?? existingDeceased.deathDate,
-      birthDate: determinedBirthDate ?? existingDeceased.birthDate,
+      deathDate: determinedDeathDate,
+      birthDate: determinedBirthDate,
     };
   }
 }

@@ -9,7 +9,6 @@ import {
   GetDeceasedSubscriptionQuery,
   GetDeceasedSubscriptionsQuery,
   GetMyDeceasedSubscriptionsQuery,
-  LoadDeceasedWithRelationsQuery,
   SubscribeDeceasedProfileDeceasedQuery,
   SubscribeDeceasedProfileUserQuery,
   UpdateDeceasedProfileCemeteryQuery,
@@ -17,7 +16,6 @@ import {
 } from 'src/modules/deceased/common/types';
 import { Deceased, DeceasedSubscription } from 'src/modules/deceased/entities';
 import { PaginationQueryDto } from 'src/common/dto';
-import { ESortOrder } from 'src/common/enums';
 
 @Injectable()
 export class DeceasedQueryOptionsService {
@@ -51,7 +49,7 @@ export class DeceasedQueryOptionsService {
       .leftJoin('deceased.deceasedSubscriptions', 'subscription', 'subscription.user_id = :userId', { userId })
       .addSelect(['subscription.id'])
       .leftJoin('deceased.deceasedMediaContents', 'deceasedMediaContent')
-      .addSelect(['deceasedMediaContent.id', 'deceasedMediaContent.isPrimary', 'deceasedMediaContent.memoryFileKey'])
+      .addSelect(['deceasedMediaContent.id', 'deceasedMediaContent.order'])
       .leftJoin('deceasedMediaContent.file', 'file')
       .addSelect(['file.id', 'file.fileKey'])
       .where('deceased.id = :deceasedId', { deceasedId });
@@ -125,33 +123,18 @@ export class DeceasedQueryOptionsService {
     };
   }
 
-  public subscribeDeceasedProfileOptions(
-    userId: string,
-    deceasedId: string,
-  ): { user: FindOneOptions<User>; deceased: FindOneOptions<Deceased> } {
+  public subscribeUserProfileOptions(userId: string): FindOneOptions<User> {
     return {
-      user: {
-        select: SubscribeDeceasedProfileUserQuery.select,
-        where: { id: userId },
-        relations: SubscribeDeceasedProfileUserQuery.relations,
-      },
-      deceased: {
-        select: SubscribeDeceasedProfileDeceasedQuery.select,
-        where: { id: deceasedId },
-      },
+      select: SubscribeDeceasedProfileUserQuery.select,
+      where: { id: userId },
+      relations: SubscribeDeceasedProfileUserQuery.relations,
     };
   }
 
-  /**
-   ** DeceasedSyncService
-   */
-
-  public loadDeceasedWithRelationsOptions(deceasedId: string): FindOneOptions<Deceased> {
+  public subscribeDeceasedProfileOptions(deceasedId: string): FindOneOptions<Deceased> {
     return {
-      select: LoadDeceasedWithRelationsQuery.select,
+      select: SubscribeDeceasedProfileDeceasedQuery.select,
       where: { id: deceasedId },
-      relations: LoadDeceasedWithRelationsQuery.relations,
-      order: { deceasedSubscriptions: { creationDate: ESortOrder.DESC } },
     };
   }
 

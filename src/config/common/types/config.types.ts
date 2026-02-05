@@ -22,7 +22,11 @@ export type EnvConfig = Readonly<{
   POSTGRES_USER: string;
   POSTGRES_DB: string;
   POSTGRES_PASSWORD: string;
-  POSTGRES_EXTERNAL_DB_URL: string;
+  POSTGRES_EXTERNAL_HOST: string;
+  POSTGRES_EXTERNAL_PORT: number;
+  POSTGRES_EXTERNAL_USER: string;
+  POSTGRES_EXTERNAL_DB: string;
+  POSTGRES_EXTERNAL_PASSWORD: string;
   REDIS_HOST: string;
   REDIS_PORT: number;
   REDIS_TTL_MINUTES: number;

@@ -92,6 +92,7 @@ const getFastifyServerOptions = (): Partial<FastifyServerOptions> => {
     return503OnClosing: true,
     ajv: { customOptions: getAjvOptions() },
     allowErrorHandlerOverride: false,
+    useSemicolonDelimiter: false,
 
     //? === ROUTER OPTIONS ===
     routerOptions: {
@@ -100,7 +101,6 @@ const getFastifyServerOptions = (): Partial<FastifyServerOptions> => {
       ignoreDuplicateSlashes: false,
       ignoreTrailingSlash: false,
       maxParamLength: 100,
-      useSemicolonDelimiter: false,
     },
 
     //? === CUSTOM SCHEMA ERROR FORMATTING ===

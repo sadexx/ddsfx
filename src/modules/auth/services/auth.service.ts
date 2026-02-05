@@ -35,6 +35,7 @@ export class AuthService {
   }
 
   public async loginPhoneNumber(clientInfo: IClientInfo, dto: LoginPhoneNumberDto): Promise<MessageOutput> {
+    await this.otpLoginRepository.checkOtpAttemptLimit(clientInfo.ipAddress);
     const account = await this.getAccountByIdentity(dto.phoneNumber, EAuthProvider.PHONE_NUMBER);
 
     await this.otpLoginRepository.createPendingSession(clientInfo, dto, account.id);

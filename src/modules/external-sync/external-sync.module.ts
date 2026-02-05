@@ -1,12 +1,25 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { ExternalSyncService } from 'src/modules/external-sync/services';
 import { Deceased } from 'src/modules/deceased/entities';
+import { ExternalSyncController } from 'src/modules/external-sync/controllers';
+import {
+  DeceasedCreationService,
+  ExternalSyncQueryOptionsService,
+  ExternalSyncService,
+  MemorySyncService,
+  OpenSearchSyncService,
+} from 'src/modules/external-sync/services';
 
 @Module({
   imports: [TypeOrmModule.forFeature([Deceased])],
-  controllers: [],
-  providers: [ExternalSyncService],
-  exports: [ExternalSyncService],
+  controllers: [ExternalSyncController],
+  providers: [
+    DeceasedCreationService,
+    ExternalSyncService,
+    MemorySyncService,
+    OpenSearchSyncService,
+    ExternalSyncQueryOptionsService,
+  ],
+  exports: [ExternalSyncService, OpenSearchSyncService],
 })
 export class ExternalSyncModule {}

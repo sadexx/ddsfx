@@ -25,7 +25,7 @@ export const GetMyDeceasedSubscriptionsQuery = {
       firstName: true,
       lastName: true,
       middleName: true,
-      deceasedMediaContents: { id: true, memoryFileKey: true, isPrimary: true, file: { id: true, fileKey: true } },
+      deceasedMediaContents: { id: true, order: true, file: { id: true, fileKey: true } },
     },
   } as const satisfies FindOptionsSelect<DeceasedSubscription>,
   relations: {
@@ -89,6 +89,7 @@ export type TSubscribeDeceasedProfileUser = QueryResultType<User, typeof Subscri
 export const SubscribeDeceasedProfileDeceasedQuery = {
   select: {
     id: true,
+    status: true,
   } as const satisfies FindOptionsSelect<Deceased>,
 };
 export type TSubscribeDeceasedProfileDeceased = QueryResultType<

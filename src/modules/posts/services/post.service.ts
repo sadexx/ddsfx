@@ -2,8 +2,6 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { FindOptionsWhere, LessThan, Repository } from 'typeorm';
 import { Post } from 'src/modules/posts/entities';
-import { PostMediaContentService } from 'src/modules/posts/services/post-media-content.service';
-import { PostValidationService } from 'src/modules/posts/services/post-validation.service';
 import { HelperService } from 'src/modules/helper/services';
 import { ITokenUserPayload } from 'src/libs/tokens/common/interfaces';
 import { CreatePostDto, UpdatePostDto } from 'src/modules/posts/common/dto';
@@ -21,6 +19,7 @@ import {
 import { findManyTyped } from 'src/common/utils/find-many-typed';
 import { GetAllPostsOutput } from 'src/modules/posts/common/outputs';
 import { findOneOrFailTyped } from 'src/common/utils/find-one-typed';
+import { PostMediaContentService, PostTemplateService, PostValidationService } from 'src/modules/posts/services';
 
 @Injectable()
 export class PostService {
@@ -29,6 +28,7 @@ export class PostService {
     private readonly postsRepository: Repository<Post>,
     private readonly postMediaContentService: PostMediaContentService,
     private readonly postValidationService: PostValidationService,
+    private readonly postTemplateService: PostTemplateService,
     private readonly helperService: HelperService,
   ) {}
 
@@ -83,6 +83,10 @@ export class PostService {
 
     await this.postsRepository.save(post);
 
+    if (dto.templateId) {
+      await this.postTemplateService.applyPostTemplate(dto.templateId, post.id, user);
+    }
+
     if (dto.mediaContent && dto.mediaContent.length > 0) {
       await this.postMediaContentService.createPostMediaContents(post.id, dto.mediaContent);
     }
@@ -98,6 +102,10 @@ export class PostService {
     });
 
     this.postValidationService.updatePostRestrictions(post, dto);
+
+    if (dto.templateId) {
+      await this.postTemplateService.updatePostTemplate(dto.templateId, post.id, user);
+    }
 
     await this.postsRepository.update(post.id, { text: dto.text });
 

@@ -12,6 +12,7 @@ import {
   DeceasedSocialMediaLink,
 } from 'src/modules/deceased-highlights/entities';
 import { Post } from 'src/modules/posts/entities';
+import { EUserGender } from 'src/modules/users/common/enum';
 
 export interface Deceased {
   id: string;
@@ -27,10 +28,12 @@ export interface Deceased {
   deceasedMediaContents: DeceasedMediaContent[];
   posts: Post[];
   status: EDeceasedStatus;
+  isFamousPerson: boolean;
   originalId: number | null;
   firstName: string | null;
   lastName: string | null;
   middleName: string | null;
+  gender: EUserGender;
   deathDay: number | null;
   deathMonth: number | null;
   deathYear: number | null;
@@ -39,6 +42,8 @@ export interface Deceased {
   birthMonth: number | null;
   birthYear: number | null;
   birthDate: Date | null;
+  memoryCreationDate: Date | null;
+  memoryUpdatingDate: Date | null;
   creationDate: Date;
   updatingDate: Date;
 }
@@ -59,6 +64,11 @@ export const Deceased = new EntitySchema<Deceased>({
       name: 'status',
       enum: EDeceasedStatus,
     },
+    isFamousPerson: {
+      type: 'boolean',
+      name: 'is_famous_person',
+      default: false,
+    },
     originalId: {
       type: 'integer',
       name: 'original_id',
@@ -78,6 +88,11 @@ export const Deceased = new EntitySchema<Deceased>({
       type: 'varchar',
       name: 'middle_name',
       nullable: true,
+    },
+    gender: {
+      type: 'enum',
+      name: 'gender',
+      enum: EUserGender,
     },
     deathDay: {
       type: 'integer',
@@ -117,6 +132,16 @@ export const Deceased = new EntitySchema<Deceased>({
     birthDate: {
       type: 'date',
       name: 'birth_date',
+      nullable: true,
+    },
+    memoryCreationDate: {
+      type: 'timestamptz',
+      name: 'memory_creation_date',
+      nullable: true,
+    },
+    memoryUpdatingDate: {
+      type: 'timestamptz',
+      name: 'memory_updating_date',
       nullable: true,
     },
     creationDate: {

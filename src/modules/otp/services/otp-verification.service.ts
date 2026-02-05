@@ -2,10 +2,11 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { OtpService } from 'src/modules/otp/services';
 import {
   OtpLoginRepository,
+  PasswordResetRepository,
   RegistrationRepository,
   UserContactInfoRepository,
 } from 'src/libs/temporal-state/repositories';
-import { VerifyEmailDto, VerifyPhoneNumberDto } from 'src/modules/otp/common/dto';
+import { VerifyEmailDto, VerifyPasswordResetDto, VerifyPhoneNumberDto } from 'src/modules/otp/common/dto';
 import { EOtpFlowType } from 'src/modules/otp/common/enum';
 import { IOpaqueTokenData } from 'src/libs/tokens/common/interfaces';
 import { IOtpVerificationOutput } from 'src/libs/temporal-state/common/outputs';
@@ -20,6 +21,7 @@ export class OtpVerificationService {
     private readonly otpLoginRepository: OtpLoginRepository,
     private readonly mockOtpService: MockOtpService,
     private readonly userContactInfoRepository: UserContactInfoRepository,
+    private readonly passwordResetRepository: PasswordResetRepository,
   ) {}
 
   public async sendRegistrationEmailOtp(email: string): Promise<void> {
@@ -97,6 +99,20 @@ export class OtpVerificationService {
     }
 
     await this.userContactInfoRepository.changePhoneNumber(dto.phoneNumber);
+  }
+
+  public async sendResetPasswordOtp(email: string): Promise<void> {
+    await this.sendOtpCode(EOtpFlowType.RESET_PASSWORD, email);
+  }
+
+  public async verifyPasswordResetOtp(dto: VerifyPasswordResetDto): Promise<IOtpVerificationOutput> {
+    const isValid = await this.otpService.verifyOtpCode(EOtpFlowType.RESET_PASSWORD, dto.email, dto.code);
+
+    if (!isValid) {
+      throw new BadRequestException('Invalid verification code');
+    }
+
+    return await this.passwordResetRepository.createState(dto.email);
   }
 
   private async sendOtpCode(flowType: EOtpFlowType, identifier: string): Promise<void> {
