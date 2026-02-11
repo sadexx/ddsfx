@@ -15,3 +15,6 @@ export type NonNullableProperties<T, K extends keyof T> = Prettify<
 >;
 
 export type StrictOmit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>;
+
+type DefaultOmittedFields = 'id' | 'creationDate' | 'updatingDate';
+export type CreatePayload<T, K extends keyof T = never> = StrictOmit<T, Extract<keyof T, DefaultOmittedFields> | K>;

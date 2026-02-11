@@ -5,10 +5,7 @@ import { DeceasedMediaContent, DeceasedSubscription } from 'src/modules/deceased
 import { DeceasedCorrection } from 'src/modules/deceased-correction/entities';
 import {
   DeceasedBiography,
-  DeceasedEducation,
-  DeceasedEmployment,
-  DeceasedHobby,
-  DeceasedResidence,
+  DeceasedPlaceEntry,
   DeceasedSocialMediaLink,
 } from 'src/modules/deceased-highlights/entities';
 import { Post } from 'src/modules/posts/entities';
@@ -20,10 +17,7 @@ export interface Deceased {
   deceasedSubscriptions: DeceasedSubscription[];
   deceasedCorrections: DeceasedCorrection[];
   deceasedBiographies: DeceasedBiography[];
-  deceasedEducations: DeceasedEducation[];
-  deceasedEmployments: DeceasedEmployment[];
-  deceasedHobbies: DeceasedHobby[];
-  deceasedResidences: DeceasedResidence[];
+  deceasedPlaceEntries: DeceasedPlaceEntry[];
   deceasedSocialMediaLinks: DeceasedSocialMediaLink[];
   deceasedMediaContents: DeceasedMediaContent[];
   posts: Post[];
@@ -176,24 +170,9 @@ export const Deceased = new EntitySchema<Deceased>({
       target: 'DeceasedBiography',
       inverseSide: 'deceased',
     },
-    deceasedEducations: {
+    deceasedPlaceEntries: {
       type: 'one-to-many',
-      target: 'DeceasedEducation',
-      inverseSide: 'deceased',
-    },
-    deceasedEmployments: {
-      type: 'one-to-many',
-      target: 'DeceasedEmployment',
-      inverseSide: 'deceased',
-    },
-    deceasedHobbies: {
-      type: 'one-to-many',
-      target: 'DeceasedHobby',
-      inverseSide: 'deceased',
-    },
-    deceasedResidences: {
-      type: 'one-to-many',
-      target: 'DeceasedResidence',
+      target: 'DeceasedPlaceEntry',
       inverseSide: 'deceased',
     },
     deceasedSocialMediaLinks: {
@@ -201,7 +180,6 @@ export const Deceased = new EntitySchema<Deceased>({
       target: 'DeceasedSocialMediaLink',
       inverseSide: 'deceased',
     },
-
     deceasedMediaContents: {
       type: 'one-to-many',
       target: 'DeceasedMediaContent',

@@ -84,10 +84,10 @@ export class UserProfileService {
 
   private constructCreateUserProfileDto(dto: CreateUserProfileDto, user: TCreateDeceasedProfileUser): IUserProfile {
     return {
+      user: user as User,
       firstName: dto.firstName,
       lastName: dto.lastName,
       middleName: dto.middleName ?? null,
-      user,
     };
   }
 

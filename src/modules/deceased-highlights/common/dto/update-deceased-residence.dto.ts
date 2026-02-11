@@ -1,20 +1,18 @@
 import { BadRequestException } from '@nestjs/common';
 import { Type } from '@sinclair/typebox';
-import { StandardStringPattern, YearPattern } from 'src/common/validators';
+import { StandardStringPattern, UUIDPattern, YearPattern } from 'src/common/validators';
 
 export class UpdateDeceasedResidenceDto {
-  city?: string;
+  cityId?: string;
   isBirthPlace?: boolean;
-  country?: string | null;
   description?: string | null;
   startYear?: number | null;
   endYear?: number | null;
 
   static readonly schema = Type.Object(
     {
-      city: Type.Optional(StandardStringPattern),
+      cityId: Type.Optional(UUIDPattern),
       isBirthPlace: Type.Optional(Type.Boolean()),
-      country: Type.Optional(Type.Union([StandardStringPattern, Type.Null()])),
       description: Type.Optional(Type.Union([StandardStringPattern, Type.Null()])),
       startYear: Type.Optional(Type.Union([YearPattern, Type.Null()])),
       endYear: Type.Optional(Type.Union([YearPattern, Type.Null()])),

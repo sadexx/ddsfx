@@ -1,6 +1,5 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DeceasedEducation } from 'src/modules/deceased-highlights/entities';
 import { Repository } from 'typeorm';
 import {
   DeceasedHighLightsQueryOptionsService,
@@ -20,19 +19,22 @@ import {
   CreateDeceasedEducationsDto,
   UpdateDeceasedEducationDto,
 } from 'src/modules/deceased-highlights/common/dto';
-import { findOneOrFailTyped } from 'src/common/utils/find-one-typed';
+import { findOneOrFailQueryBuilderTyped, findOneOrFailTyped } from 'src/common/utils/find-one-typed';
 import { Deceased } from 'src/modules/deceased/entities';
 import { DeceasedSubscriptionService } from 'src/modules/deceased/services';
 import { IDeceasedEducation } from 'src/modules/deceased-highlights/common/interfaces';
 import { StrictOmit } from 'src/common/types';
+import { DeceasedPlaceEntry } from 'src/modules/deceased-highlights/entities';
+import { ReferenceCatalog } from 'src/modules/reference-catalog/entities';
+import { User } from 'src/modules/users/entities';
 
 @Injectable()
 export class DeceasedEducationService {
   constructor(
     @InjectRepository(Deceased)
     private readonly deceasedRepository: Repository<Deceased>,
-    @InjectRepository(DeceasedEducation)
-    private readonly deceasedEducationRepository: Repository<DeceasedEducation>,
+    @InjectRepository(DeceasedPlaceEntry)
+    private readonly deceasedPlaceEntryRepository: Repository<DeceasedPlaceEntry>,
     private readonly deceasedHighlightsQueryOptionsService: DeceasedHighLightsQueryOptionsService,
     private readonly deceasedHighlightsValidationService: DeceasedHighlightsValidationService,
     private readonly deceasedSubscriptionService: DeceasedSubscriptionService,
@@ -41,7 +43,7 @@ export class DeceasedEducationService {
   public async getDeceasedEducations(param: UUIDParamDto): Promise<TGetDeceasedEducations[]> {
     const queryOptions = this.deceasedHighlightsQueryOptionsService.getDeceasedEducationsOptions(param.id);
     const deceasedEducations = await findManyTyped<TGetDeceasedEducations[]>(
-      this.deceasedEducationRepository,
+      this.deceasedPlaceEntryRepository,
       queryOptions,
     );
 
@@ -53,17 +55,18 @@ export class DeceasedEducationService {
     dto: CreateDeceasedEducationsDto,
     user: ITokenUserPayload,
   ): Promise<void> {
-    const queryOptions = this.deceasedHighlightsQueryOptionsService.createDeceasedEducationsOptions(param.id);
-    const deceased = await findOneOrFailTyped<TCreateDeceasedEducations>(
+    const queryBuilder = this.deceasedRepository.createQueryBuilder('deceased');
+    this.deceasedHighlightsQueryOptionsService.createDeceasedEducationsOptions(queryBuilder, param.id);
+    const deceased = await findOneOrFailQueryBuilderTyped<TCreateDeceasedEducations>(
       param.id,
-      this.deceasedRepository,
-      queryOptions,
+      queryBuilder,
+      Deceased.options.name,
     );
 
     await this.deceasedSubscriptionService.ensureDeceasedSubscription(user.sub, param.id);
-    this.deceasedHighlightsValidationService.validateCreateDeceasedEducations(dto, deceased);
+    await this.deceasedHighlightsValidationService.validateCreateDeceasedEducations(dto, deceased);
 
-    await this.constructAndCreateDeceasedEducations(dto, deceased);
+    await this.constructAndCreateDeceasedEducations(user.sub, dto, deceased);
   }
 
   public async updateDeceasedEducation(
@@ -74,12 +77,13 @@ export class DeceasedEducationService {
     const queryOptions = this.deceasedHighlightsQueryOptionsService.updateDeceasedEducationOptions(param.id);
     const deceasedEducation = await findOneOrFailTyped<TUpdateDeceasedEducation>(
       param.id,
-      this.deceasedEducationRepository,
+      this.deceasedPlaceEntryRepository,
       queryOptions,
     );
 
     await this.deceasedSubscriptionService.ensureDeceasedSubscription(user.sub, deceasedEducation.deceased.id);
-    this.deceasedHighlightsValidationService.validateUpdateDeceasedEducation(dto, deceasedEducation);
+    this.deceasedHighlightsValidationService.validateOwnership(user, deceasedEducation.user);
+    await this.deceasedHighlightsValidationService.validateUpdateDeceasedEducation(dto, deceasedEducation);
 
     await this.updateEducation(dto, deceasedEducation);
   }
@@ -88,30 +92,30 @@ export class DeceasedEducationService {
     const queryOptions = this.deceasedHighlightsQueryOptionsService.removeDeceasedEducationOptions(param.id);
     const deceasedEducation = await findOneOrFailTyped<TRemoveDeceasedEducation>(
       param.id,
-      this.deceasedEducationRepository,
+      this.deceasedPlaceEntryRepository,
       queryOptions,
     );
 
     await this.deceasedSubscriptionService.ensureDeceasedSubscription(user.sub, deceasedEducation.deceased.id);
+    this.deceasedHighlightsValidationService.validateOwnership(user, deceasedEducation.user);
 
-    await this.deceasedEducationRepository.delete(deceasedEducation.id);
+    await this.deceasedPlaceEntryRepository.delete(deceasedEducation.id);
   }
 
   private async constructAndCreateDeceasedEducations(
+    userId: string,
     dto: CreateDeceasedEducationsDto,
     deceased: TCreateDeceasedEducations,
-  ): Promise<DeceasedEducation[]> {
+  ): Promise<void> {
     const educationDtos = dto.educations.map((education) =>
-      this.constructCreateDeceasedEducationDto(education, deceased),
+      this.constructCreateDeceasedEducationDto(userId, education, deceased),
     );
-
-    return await this.createDeceasedEducation(educationDtos);
+    await this.createDeceasedEducation(educationDtos);
   }
 
-  private async createDeceasedEducation(dto: IDeceasedEducation[]): Promise<DeceasedEducation[]> {
-    const newDeceasedEducation = this.deceasedEducationRepository.create(dto);
-
-    return await this.deceasedEducationRepository.save(newDeceasedEducation);
+  private async createDeceasedEducation(dto: IDeceasedEducation[]): Promise<void> {
+    const newDeceasedEducation = this.deceasedPlaceEntryRepository.create(dto);
+    await this.deceasedPlaceEntryRepository.save(newDeceasedEducation);
   }
 
   private async updateEducation(
@@ -119,36 +123,44 @@ export class DeceasedEducationService {
     existingDeceasedEducation: TUpdateDeceasedEducation,
   ): Promise<void> {
     const deceasedEducationDto = this.constructUpdateDeceasedEducationDto(dto, existingDeceasedEducation);
-    await this.deceasedEducationRepository.update({ id: existingDeceasedEducation.id }, deceasedEducationDto);
+    await this.deceasedPlaceEntryRepository.update({ id: existingDeceasedEducation.id }, deceasedEducationDto);
   }
 
   private constructCreateDeceasedEducationDto(
+    userId: string,
     dto: CreateDeceasedEducationDto,
     deceased: TCreateDeceasedEducations,
   ): IDeceasedEducation {
     return {
+      deceased: deceased as Deceased,
+      user: { id: userId } as User,
+      institutionName: { id: dto.institutionNameId } as ReferenceCatalog,
+      specialization: dto.specializationId ? ({ id: dto.specializationId } as ReferenceCatalog) : null,
       type: dto.type,
-      institutionName: dto.institutionName,
-      city: dto.city ?? null,
-      country: dto.country ?? null,
-      specialization: dto.specialization ?? null,
       description: dto.description ?? null,
       startYear: dto.startYear ?? null,
       endYear: dto.endYear ?? null,
-      deceased,
     };
   }
 
   private constructUpdateDeceasedEducationDto(
     dto: UpdateDeceasedEducationDto,
     existingDeceasedEducation: TUpdateDeceasedEducation,
-  ): StrictOmit<IDeceasedEducation, 'deceased'> {
+  ): StrictOmit<IDeceasedEducation, 'deceased' | 'user'> {
+    const determinedInstitutionName = dto.institutionNameId
+      ? ({ id: dto.institutionNameId } as ReferenceCatalog)
+      : existingDeceasedEducation.institutionName;
+    const determinedSpecialization =
+      dto.specializationId !== undefined
+        ? dto.specializationId
+          ? ({ id: dto.specializationId } as ReferenceCatalog)
+          : null
+        : existingDeceasedEducation.specialization;
+
     return {
+      institutionName: determinedInstitutionName,
+      specialization: determinedSpecialization,
       type: dto.type ?? existingDeceasedEducation.type,
-      institutionName: dto.institutionName ?? existingDeceasedEducation.institutionName,
-      city: dto.city !== undefined ? dto.city : existingDeceasedEducation.city,
-      country: dto.country !== undefined ? dto.country : existingDeceasedEducation.country,
-      specialization: dto.specialization !== undefined ? dto.specialization : existingDeceasedEducation.specialization,
       description: dto.description !== undefined ? dto.description : existingDeceasedEducation.description,
       startYear: dto.startYear !== undefined ? dto.startYear : existingDeceasedEducation.startYear,
       endYear: dto.endYear !== undefined ? dto.endYear : existingDeceasedEducation.endYear,

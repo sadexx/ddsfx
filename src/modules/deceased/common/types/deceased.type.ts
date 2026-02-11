@@ -61,6 +61,7 @@ export const UpdateDeceasedProfileQuery = {
     firstName: true,
     lastName: true,
     middleName: true,
+    gender: true,
     deathDay: true,
     deathMonth: true,
     deathYear: true,

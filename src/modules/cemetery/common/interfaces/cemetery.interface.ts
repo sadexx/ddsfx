@@ -1,6 +1,5 @@
-import { IAddress } from 'src/modules/address/common/interfaces';
+/* eslint-disable @typescript-eslint/no-empty-object-type */
+import { CreatePayload } from 'src/common/types';
+import { Cemetery } from 'src/modules/cemetery/entities';
 
-export interface ICemetery {
-  name: string;
-  address: IAddress;
-}
+export interface ICemetery extends CreatePayload<Cemetery, 'graveLocations'> {}

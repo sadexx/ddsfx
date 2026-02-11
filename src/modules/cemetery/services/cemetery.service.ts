@@ -16,6 +16,7 @@ import { PaginationOutput } from 'src/common/outputs';
 import { findManyAndCountQueryBuilderTyped } from 'src/common/utils/find-many-typed';
 import { cemeteriesSeedData } from 'src/modules/cemetery/common/seed-data';
 import { LokiLogger } from 'src/libs/logger';
+import { Deceased } from 'src/modules/deceased/entities';
 
 @Injectable()
 export class CemeteryService {
@@ -91,11 +92,11 @@ export class CemeteryService {
     dto?: CreateGraveLocationDto | UpdateGraveLocationDto,
   ): IGraveLocation {
     return {
+      cemetery: cemetery as Cemetery,
+      deceased: deceased as Deceased,
       latitude: dto?.latitude ?? null,
       longitude: dto?.longitude ?? null,
       altitude: dto?.altitude ?? null,
-      cemetery,
-      deceased,
     };
   }
 
@@ -107,11 +108,11 @@ export class CemeteryService {
     const cemeteryChanged = cemetery && cemetery.id !== existingGraveLocation.cemetery.id;
 
     return {
+      cemetery: (cemetery ?? existingGraveLocation.cemetery) as Cemetery,
       latitude: dto?.latitude !== undefined ? dto.latitude : cemeteryChanged ? null : existingGraveLocation.latitude,
       longitude:
         dto?.longitude !== undefined ? dto.longitude : cemeteryChanged ? null : existingGraveLocation.longitude,
       altitude: dto?.altitude !== undefined ? dto.altitude : cemeteryChanged ? null : existingGraveLocation.altitude,
-      cemetery: cemetery ?? existingGraveLocation.cemetery,
     };
   }
 }

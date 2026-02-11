@@ -1,25 +1,25 @@
 import { BadRequestException } from '@nestjs/common';
 import { Type } from '@sinclair/typebox';
-import { StandardStringPattern, YearPattern } from 'src/common/validators';
-import { EDeceasedEducationType } from 'src/modules/deceased-highlights/common/enums';
+import { StandardStringPattern, UUIDPattern, YearPattern } from 'src/common/validators';
+import { TDeceasedEducationType } from 'src/modules/deceased-highlights/common/types/';
+import { EDeceasedPlaceEntryType } from 'src/modules/deceased-highlights/common/enums';
 
 export class CreateDeceasedEducationDto {
-  type: EDeceasedEducationType;
-  institutionName: string;
-  city?: string;
-  country?: string;
-  specialization?: string;
+  type: TDeceasedEducationType;
+  institutionNameId: string;
+  specializationId?: string;
   description?: string;
   startYear?: number;
   endYear?: number;
 
   static readonly schema = Type.Object(
     {
-      type: Type.Enum(EDeceasedEducationType),
-      institutionName: StandardStringPattern,
-      city: Type.Optional(StandardStringPattern),
-      country: Type.Optional(StandardStringPattern),
-      specialization: Type.Optional(StandardStringPattern),
+      type: Type.Union([
+        Type.Literal(EDeceasedPlaceEntryType.SECONDARY_EDUCATION),
+        Type.Literal(EDeceasedPlaceEntryType.HIGHER_EDUCATION),
+      ]),
+      institutionNameId: UUIDPattern,
+      specializationId: Type.Optional(UUIDPattern),
       description: Type.Optional(StandardStringPattern),
       startYear: Type.Optional(YearPattern),
       endYear: Type.Optional(YearPattern),

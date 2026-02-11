@@ -1,6 +1,5 @@
-import { TCreateDeceasedBiography } from 'src/modules/deceased-highlights/common/types';
+/* eslint-disable @typescript-eslint/no-empty-object-type */
+import { CreatePayload } from 'src/common/types';
+import { DeceasedBiography } from 'src/modules/deceased-highlights/entities';
 
-export interface IDeceasedBiography {
-  description: string;
-  deceased: TCreateDeceasedBiography;
-}
+export interface IDeceasedBiography extends CreatePayload<DeceasedBiography> {}

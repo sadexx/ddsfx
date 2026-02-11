@@ -1,43 +1,28 @@
 import { Injectable } from '@nestjs/common';
-import { FindManyOptions, FindOneOptions, In } from 'typeorm';
+import { FindManyOptions, FindOneOptions, In, SelectQueryBuilder } from 'typeorm';
 import { Deceased } from 'src/modules/deceased/entities';
 import {
   CreateDeceasedBiographyQuery,
-  CreateDeceasedEducationsQuery,
-  CreateDeceasedEmploymentsQuery,
-  CreateDeceasedHobbyQuery,
-  CreateDeceasedResidencesQuery,
   CreateDeceasedSocialMediaLinkQuery,
   GetDeceasedBiographiesQuery,
   GetDeceasedEducationsQuery,
-  GetDeceasedEmploymentsQuery,
-  GetDeceasedHobbiesQuery,
-  GetDeceasedHobbyTagsQuery,
   GetDeceasedResidencesQuery,
   GetDeceasedSocialMediaLinksQuery,
   RemoveDeceasedBiographyQuery,
   RemoveDeceasedEducationQuery,
-  RemoveDeceasedEmploymentQuery,
-  RemoveDeceasedHobbyQuery,
   RemoveDeceasedResidenceQuery,
   RemoveDeceasedSocialMediaLinkQuery,
   UpdateDeceasedBiographyQuery,
   UpdateDeceasedEducationQuery,
-  UpdateDeceasedEmploymentQuery,
-  UpdateDeceasedHobbyQuery,
   UpdateDeceasedResidenceQuery,
   UpdateDeceasedSocialMediaLinkQuery,
 } from 'src/modules/deceased-highlights/common/types';
 import {
   DeceasedBiography,
-  DeceasedEducation,
-  DeceasedEmployment,
-  DeceasedHobby,
-  DeceasedHobbyTag,
-  DeceasedHobbyTagCategory,
-  DeceasedResidence,
+  DeceasedPlaceEntry,
   DeceasedSocialMediaLink,
 } from 'src/modules/deceased-highlights/entities';
+import { EDeceasedPlaceEntryType } from 'src/modules/deceased-highlights/common/enums';
 
 @Injectable()
 export class DeceasedHighLightsQueryOptionsService {
@@ -45,33 +30,36 @@ export class DeceasedHighLightsQueryOptionsService {
    ** DeceasedResidenceService
    */
 
-  public getDeceasedResidencesOptions(deceasedId: string): FindManyOptions<DeceasedResidence> {
+  public getDeceasedResidencesOptions(deceasedId: string): FindManyOptions<DeceasedPlaceEntry> {
     return {
       select: GetDeceasedResidencesQuery.select,
-      where: { deceased: { id: deceasedId } },
+      where: { type: EDeceasedPlaceEntryType.RESIDENCE, deceased: { id: deceasedId } },
+      relations: GetDeceasedResidencesQuery.relations,
     };
   }
 
-  public createDeceasedResidencesOptions(deceasedId: string): FindOneOptions<Deceased> {
-    return {
-      select: CreateDeceasedResidencesQuery.select,
-      where: { id: deceasedId },
-      relations: CreateDeceasedResidencesQuery.relations,
-    };
+  public createDeceasedResidencesOptions(queryBuilder: SelectQueryBuilder<Deceased>, deceasedId: string): void {
+    queryBuilder
+      .select('deceased.id')
+      .leftJoin('deceased.deceasedPlaceEntries', 'deceasedPlaceEntry', 'deceasedPlaceEntry.type = :type', {
+        type: EDeceasedPlaceEntryType.RESIDENCE,
+      })
+      .addSelect('deceasedPlaceEntry.id')
+      .where('deceased.id = :deceasedId', { deceasedId });
   }
 
-  public updateDeceasedResidenceOptions(deceasedResidenceId: string): FindOneOptions<DeceasedResidence> {
+  public updateDeceasedResidenceOptions(deceasedResidenceId: string): FindOneOptions<DeceasedPlaceEntry> {
     return {
       select: UpdateDeceasedResidenceQuery.select,
-      where: { id: deceasedResidenceId },
+      where: { id: deceasedResidenceId, type: EDeceasedPlaceEntryType.RESIDENCE },
       relations: UpdateDeceasedResidenceQuery.relations,
     };
   }
 
-  public removeDeceasedResidenceOptions(deceasedResidenceId: string): FindOneOptions<DeceasedResidence> {
+  public removeDeceasedResidenceOptions(deceasedResidenceId: string): FindOneOptions<DeceasedPlaceEntry> {
     return {
       select: RemoveDeceasedResidenceQuery.select,
-      where: { id: deceasedResidenceId },
+      where: { id: deceasedResidenceId, type: EDeceasedPlaceEntryType.RESIDENCE },
       relations: RemoveDeceasedResidenceQuery.relations,
     };
   }
@@ -80,112 +68,46 @@ export class DeceasedHighLightsQueryOptionsService {
    ** DeceasedEducationService
    */
 
-  public getDeceasedEducationsOptions(deceasedId: string): FindManyOptions<DeceasedEducation> {
+  public getDeceasedEducationsOptions(deceasedId: string): FindManyOptions<DeceasedPlaceEntry> {
     return {
       select: GetDeceasedEducationsQuery.select,
-      where: { deceased: { id: deceasedId } },
+      where: {
+        type: In([EDeceasedPlaceEntryType.SECONDARY_EDUCATION, EDeceasedPlaceEntryType.HIGHER_EDUCATION]),
+        deceased: { id: deceasedId },
+      },
+      relations: GetDeceasedEducationsQuery.relations,
     };
   }
 
-  public createDeceasedEducationsOptions(deceasedId: string): FindOneOptions<Deceased> {
-    return {
-      select: CreateDeceasedEducationsQuery.select,
-      where: { id: deceasedId },
-      relations: CreateDeceasedEducationsQuery.relations,
-    };
+  public createDeceasedEducationsOptions(queryBuilder: SelectQueryBuilder<Deceased>, deceasedId: string): void {
+    queryBuilder
+      .select('deceased.id')
+      .leftJoin('deceased.deceasedPlaceEntries', 'deceasedPlaceEntry', 'deceasedPlaceEntry.type IN (:...types)', {
+        types: [EDeceasedPlaceEntryType.SECONDARY_EDUCATION, EDeceasedPlaceEntryType.HIGHER_EDUCATION],
+      })
+      .addSelect('deceasedPlaceEntry.id')
+      .where('deceased.id = :deceasedId', { deceasedId });
   }
 
-  public updateDeceasedEducationOptions(deceasedEducationId: string): FindManyOptions<DeceasedEducation> {
+  public updateDeceasedEducationOptions(deceasedEducationId: string): FindManyOptions<DeceasedPlaceEntry> {
     return {
       select: UpdateDeceasedEducationQuery.select,
-      where: { id: deceasedEducationId },
+      where: {
+        id: deceasedEducationId,
+        type: In([EDeceasedPlaceEntryType.SECONDARY_EDUCATION, EDeceasedPlaceEntryType.HIGHER_EDUCATION]),
+      },
       relations: UpdateDeceasedEducationQuery.relations,
     };
   }
 
-  public removeDeceasedEducationOptions(deceasedEducationId: string): FindOneOptions<DeceasedEducation> {
+  public removeDeceasedEducationOptions(deceasedEducationId: string): FindOneOptions<DeceasedPlaceEntry> {
     return {
       select: RemoveDeceasedEducationQuery.select,
-      where: { id: deceasedEducationId },
+      where: {
+        id: deceasedEducationId,
+        type: In([EDeceasedPlaceEntryType.SECONDARY_EDUCATION, EDeceasedPlaceEntryType.HIGHER_EDUCATION]),
+      },
       relations: RemoveDeceasedEducationQuery.relations,
-    };
-  }
-
-  /**
-   ** DeceasedEmploymentService
-   */
-
-  public getDeceasedEmploymentsOptions(deceasedId: string): FindManyOptions<DeceasedEmployment> {
-    return {
-      select: GetDeceasedEmploymentsQuery.select,
-      where: { deceased: { id: deceasedId } },
-    };
-  }
-
-  public createDeceasedEmploymentsOptions(deceasedId: string): FindOneOptions<Deceased> {
-    return {
-      select: CreateDeceasedEmploymentsQuery.select,
-      where: { id: deceasedId },
-      relations: CreateDeceasedEmploymentsQuery.relations,
-    };
-  }
-
-  public updateDeceasedEmploymentOptions(deceasedEmploymentId: string): FindOneOptions<DeceasedEmployment> {
-    return {
-      select: UpdateDeceasedEmploymentQuery.select,
-      where: { id: deceasedEmploymentId },
-      relations: UpdateDeceasedEmploymentQuery.relations,
-    };
-  }
-
-  public removeDeceasedEmploymentOptions(deceasedEmploymentId: string): FindOneOptions<DeceasedEmployment> {
-    return {
-      select: RemoveDeceasedEmploymentQuery.select,
-      where: { id: deceasedEmploymentId },
-      relations: RemoveDeceasedEmploymentQuery.relations,
-    };
-  }
-
-  /**
-   ** DeceasedHobbyService
-   */
-
-  public getDeceasedHobbiesOptions(deceasedId: string): FindManyOptions<DeceasedHobby> {
-    return {
-      select: GetDeceasedHobbiesQuery.select,
-      where: { deceased: { id: deceasedId } },
-      relations: GetDeceasedHobbiesQuery.relations,
-    };
-  }
-
-  public getDeceasedHobbyTagsOptions(): FindManyOptions<DeceasedHobbyTagCategory> {
-    return {
-      select: GetDeceasedHobbyTagsQuery.select,
-      relations: GetDeceasedHobbyTagsQuery.relations,
-    };
-  }
-
-  public createDeceasedHobbyOptions(deceasedId: string): FindOneOptions<Deceased> {
-    return {
-      select: CreateDeceasedHobbyQuery.select,
-      where: { id: deceasedId },
-      relations: CreateDeceasedHobbyQuery.relations,
-    };
-  }
-
-  public updateDeceasedHobbyOptions(deceasedHobbyId: string): FindOneOptions<DeceasedHobby> {
-    return {
-      select: UpdateDeceasedHobbyQuery.select,
-      where: { id: deceasedHobbyId },
-      relations: UpdateDeceasedHobbyQuery.relations,
-    };
-  }
-
-  public removeDeceasedHobbyOptions(deceasedHobbyId: string): FindOneOptions<DeceasedHobby> {
-    return {
-      select: RemoveDeceasedHobbyQuery.select,
-      where: { id: deceasedHobbyId },
-      relations: RemoveDeceasedHobbyQuery.relations,
     };
   }
 
@@ -197,6 +119,7 @@ export class DeceasedHighLightsQueryOptionsService {
     return {
       select: GetDeceasedBiographiesQuery.select,
       where: { deceased: { id: deceasedId } },
+      relations: GetDeceasedBiographiesQuery.relations,
     };
   }
 
@@ -232,6 +155,7 @@ export class DeceasedHighLightsQueryOptionsService {
     return {
       select: GetDeceasedSocialMediaLinksQuery.select,
       where: { deceased: { id: deceasedId } },
+      relations: GetDeceasedSocialMediaLinksQuery.relations,
     };
   }
 
@@ -267,18 +191,13 @@ export class DeceasedHighLightsQueryOptionsService {
    ** DeceasedHighlightsValidationService
    */
 
-  public validateCreateDeceasedResidencesOptions(deceasedId: string): FindOneOptions<DeceasedResidence> {
+  public validateCreateDeceasedResidencesOptions(deceasedId: string): FindOneOptions<DeceasedPlaceEntry> {
     return {
       where: {
+        type: EDeceasedPlaceEntryType.RESIDENCE,
         deceased: { id: deceasedId },
         isBirthPlace: true,
       },
-    };
-  }
-
-  public ensureHobbyTagsExistOptions(tagIds: string[]): FindManyOptions<DeceasedHobbyTag> {
-    return {
-      where: { id: In(tagIds) },
     };
   }
 }

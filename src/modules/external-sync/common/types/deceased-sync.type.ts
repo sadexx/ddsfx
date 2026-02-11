@@ -14,7 +14,9 @@ export type TLoadDeceasedWithRelations = Pick<
   | 'firstName'
   | 'lastName'
   | 'middleName'
+  | 'status'
   | 'gender'
+  | 'isFamousPerson'
   | 'birthDate'
   | 'birthDay'
   | 'birthMonth'
@@ -47,4 +49,5 @@ export type TLoadDeceasedWithRelations = Pick<
       file: Pick<File, 'id' | 'fileKey' | 'bucketName'>;
     }
   >;
+  deceasedSubscriptionsCount: number;
 };

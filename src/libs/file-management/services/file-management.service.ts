@@ -4,13 +4,7 @@ import { Repository } from 'typeorm';
 import { IFile } from 'src/libs/file-management/common/interfaces';
 import { UploadFileDto } from 'src/libs/file-management/common/dto';
 import { File } from 'src/libs/file-management/entities';
-import {
-  EBucketName,
-  EContentType,
-  EFileExtension,
-  EFileType,
-  EFolderPath,
-} from 'src/libs/file-management/common/enums';
+import { EBucketName, EContentType, EFileExtension, EFileType } from 'src/libs/file-management/common/enums';
 import { AwsS3Service } from 'src/libs/aws/s3/services';
 import { CloudFrontService } from 'src/libs/aws/cloud-front/services';
 import { EntityIdOutput, MessageOutput } from 'src/common/outputs';
@@ -30,7 +24,6 @@ import { FileHandlerService } from 'src/libs/file-management/services';
 import { ConfigService } from '@nestjs/config';
 import { EnvConfig } from 'src/config/common/types';
 import { ENV_CONFIG_TOKEN } from 'src/config/common/constants';
-import { generateUuidV7 } from 'src/common/utils';
 
 @Injectable()
 export class FileManagementService {
@@ -112,12 +105,20 @@ export class FileManagementService {
   }
 
   public async deleteFileAndObject(file: TDeleteFile): Promise<void> {
-    await this.deleteObjectFromStorage(file.fileKey);
+    if (!file.isDefault) {
+      await this.deleteObjectFromStorage(file.fileKey);
+    }
+
     await this.fileRepository.delete(file.id);
   }
 
   public async deleteFilesAndObjects(files: TDeleteFile[]): Promise<void> {
-    await this.deleteObjectsFromStorage(files);
+    const nonDefaultFiles = files.filter((file) => !file.isDefault);
+
+    if (nonDefaultFiles.length > 0) {
+      await this.deleteObjectsFromStorage(nonDefaultFiles);
+    }
+
     await this.fileRepository.remove(files as File[]);
   }
 
@@ -139,24 +140,17 @@ export class FileManagementService {
     }
   }
 
-  public async copyFile(
-    sourceFileId: string,
-    user: ITokenUserPayload,
-    folderPath: EFolderPath,
-    category: EFileType,
-  ): Promise<EntityIdOutput> {
+  public async copyFile(sourceFileId: string, user: ITokenUserPayload, category: EFileType): Promise<EntityIdOutput> {
     const sourceFile = await findOneOrFailTyped<TCopyFile>(sourceFileId, this.fileRepository, {
       select: CopyFileQuery.select,
       where: { id: sourceFileId },
     });
 
-    const newFileName = generateUuidV7();
-    const storageKey = `${newFileName}${sourceFile.extension}`;
-    const fileKey = `${folderPath}/${storageKey}`;
+    if (!sourceFile.isDefault) {
+      await this.fileRepository.update(sourceFileId, { isDefault: true });
+    }
 
-    await this.storageService.copyObject(sourceFile.fileKey, fileKey);
-
-    const newFile = this.createCopyFileEntity(sourceFile, user, folderPath, category, newFileName, storageKey, fileKey);
+    const newFile = this.createCopyFileEntity(sourceFile, user, category);
     const savedFile = await this.fileRepository.save(newFile);
 
     return { id: savedFile.id };
@@ -173,24 +167,12 @@ export class FileManagementService {
     });
   }
 
-  private createCopyFileEntity(
-    file: TCopyFile,
-    user: ITokenUserPayload,
-    folderPath: EFolderPath,
-    category: EFileType,
-    newFileName: string,
-    storageKey: string,
-    fileKey: string,
-  ): File {
+  private createCopyFileEntity(file: TCopyFile, user: ITokenUserPayload, category: EFileType): File {
     return this.fileRepository.create({
       ...file,
-      storagePath: folderPath,
       category: category,
       uploadedByUserId: user.sub,
-      originalName: newFileName,
-      originalFullName: storageKey,
-      storageKey: storageKey,
-      fileKey: fileKey,
+      isDefault: true,
     });
   }
 }

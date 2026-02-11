@@ -1,25 +1,27 @@
 import { BadRequestException } from '@nestjs/common';
 import { Type } from '@sinclair/typebox';
-import { StandardStringPattern, YearPattern } from 'src/common/validators';
-import { EDeceasedEducationType } from 'src/modules/deceased-highlights/common/enums';
+import { StandardStringPattern, UUIDPattern, YearPattern } from 'src/common/validators';
+import { TDeceasedEducationType } from 'src/modules/deceased-highlights/common/types';
+import { EDeceasedPlaceEntryType } from 'src/modules/deceased-highlights/common/enums';
 
 export class UpdateDeceasedEducationDto {
-  type?: EDeceasedEducationType;
-  institutionName?: string;
-  city?: string | null;
-  country?: string | null;
-  specialization?: string | null;
+  type?: TDeceasedEducationType;
+  institutionNameId?: string;
+  specializationId?: string | null;
   description?: string | null;
   startYear?: number | null;
   endYear?: number | null;
 
   static readonly schema = Type.Object(
     {
-      type: Type.Optional(Type.Enum(EDeceasedEducationType)),
-      institutionName: Type.Optional(StandardStringPattern),
-      city: Type.Optional(Type.Union([StandardStringPattern, Type.Null()])),
-      country: Type.Optional(Type.Union([StandardStringPattern, Type.Null()])),
-      specialization: Type.Optional(Type.Union([StandardStringPattern, Type.Null()])),
+      type: Type.Optional(
+        Type.Union([
+          Type.Literal(EDeceasedPlaceEntryType.SECONDARY_EDUCATION),
+          Type.Literal(EDeceasedPlaceEntryType.HIGHER_EDUCATION),
+        ]),
+      ),
+      institutionNameId: Type.Optional(UUIDPattern),
+      specializationId: Type.Optional(Type.Union([UUIDPattern, Type.Null()])),
       description: Type.Optional(Type.Union([StandardStringPattern, Type.Null()])),
       startYear: Type.Optional(Type.Union([YearPattern, Type.Null()])),
       endYear: Type.Optional(Type.Union([YearPattern, Type.Null()])),

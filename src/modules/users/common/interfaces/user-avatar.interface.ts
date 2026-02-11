@@ -1,9 +1,5 @@
-import { EUserAvatarStatus } from 'src/modules/users/common/enum';
-import { File } from 'src/libs/file-management/entities';
-import { User } from 'src/modules/users/entities';
+/* eslint-disable @typescript-eslint/no-empty-object-type */
+import { UserAvatar } from 'src/modules/users/entities';
+import { CreatePayload } from 'src/common/types';
 
-export interface IUserAvatar {
-  user: User;
-  file: File;
-  status: EUserAvatarStatus;
-}
+export interface IUserAvatar extends CreatePayload<UserAvatar> {}

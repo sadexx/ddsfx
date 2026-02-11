@@ -1,4 +1,5 @@
 import { ICemetery } from 'src/modules/cemetery/common/interfaces';
+import { Address } from 'src/modules/address/entities';
 
 export const cemeteriesSeedData: ICemetery[] = [
   {
@@ -17,6 +18,6 @@ export const cemeteriesSeedData: ICemetery[] = [
       organizationName: null,
       timezone: null,
       cemetery: null,
-    },
+    } as Address,
   },
 ];

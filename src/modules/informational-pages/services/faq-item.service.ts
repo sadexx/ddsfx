@@ -61,17 +61,17 @@ export class FaqItemService {
 
   private constructCreateFaqItemDto(dto: CreateFaqItemDto): IFaqItem {
     return {
+      category: { id: dto.categoryId } as FaqCategory,
       question: dto.question,
       answer: dto.answer,
-      category: { id: dto.categoryId } as FaqCategory,
     };
   }
 
   private constructUpdateFaqItemDto(dto: UpdateFaqItemDto, existingFaqItem: TUpdateFaqItem): IFaqItem {
     return {
+      category: { id: dto.categoryId ?? existingFaqItem.category.id } as FaqCategory,
       question: dto.question ?? existingFaqItem.question,
       answer: dto.answer ?? existingFaqItem.answer,
-      category: { id: dto.categoryId ?? existingFaqItem.category.id } as FaqCategory,
     };
   }
 }

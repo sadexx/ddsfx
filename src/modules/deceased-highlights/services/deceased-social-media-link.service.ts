@@ -24,6 +24,7 @@ import { StrictOmit } from 'src/common/types';
 import { DeceasedSubscriptionService } from 'src/modules/deceased/services';
 import { ITokenUserPayload } from 'src/libs/tokens/common/interfaces';
 import { findManyTyped } from 'src/common/utils/find-many-typed';
+import { User } from 'src/modules/users/entities';
 
 @Injectable()
 export class DeceasedSocialMediaLinkService {
@@ -62,7 +63,7 @@ export class DeceasedSocialMediaLinkService {
     await this.deceasedSubscriptionService.ensureDeceasedSubscription(user.sub, param.id);
     this.deceasedHighlightsValidationService.validateCreateDeceasedSocialMediaLink(dto, deceased);
 
-    await this.constructAndCreateDeceasedSocialMediaLink(dto, deceased);
+    await this.constructAndCreateDeceasedSocialMediaLink(user.sub, dto, deceased);
   }
 
   public async updateDeceasedSocialMediaLink(
@@ -78,6 +79,7 @@ export class DeceasedSocialMediaLinkService {
     );
 
     await this.deceasedSubscriptionService.ensureDeceasedSubscription(user.sub, deceasedSocialMediaLink.deceased.id);
+    this.deceasedHighlightsValidationService.validateOwnership(user, deceasedSocialMediaLink.user);
     this.deceasedHighlightsValidationService.validateUpdateDeceasedSocialMediaLink(dto, deceasedSocialMediaLink);
 
     await this.updateSocialMediaLink(dto, deceasedSocialMediaLink);
@@ -92,23 +94,23 @@ export class DeceasedSocialMediaLinkService {
     );
 
     await this.deceasedSubscriptionService.ensureDeceasedSubscription(user.sub, deceasedSocialMediaLink.deceased.id);
+    this.deceasedHighlightsValidationService.validateOwnership(user, deceasedSocialMediaLink.user);
 
     await this.deceasedSocialMediaLinkRepository.delete(deceasedSocialMediaLink.id);
   }
 
   private async constructAndCreateDeceasedSocialMediaLink(
+    userId: string,
     dto: CreateDeceasedSocialMediaLinkDto,
     deceased: TCreateDeceasedSocialMediaLink,
-  ): Promise<DeceasedSocialMediaLink> {
-    const socialMediaLinkDto = this.constructCreateDeceasedSocialMediaLinkDto(dto, deceased);
-
-    return await this.createSocialMediaLink(socialMediaLinkDto);
+  ): Promise<void> {
+    const socialMediaLinkDto = this.constructCreateDeceasedSocialMediaLinkDto(userId, dto, deceased);
+    await this.createSocialMediaLink(socialMediaLinkDto);
   }
 
-  private async createSocialMediaLink(dto: IDeceasedSocialMediaLink): Promise<DeceasedSocialMediaLink> {
+  private async createSocialMediaLink(dto: IDeceasedSocialMediaLink): Promise<void> {
     const newDeceasedSocialMediaLink = this.deceasedSocialMediaLinkRepository.create(dto);
-
-    return await this.deceasedSocialMediaLinkRepository.save(newDeceasedSocialMediaLink);
+    await this.deceasedSocialMediaLinkRepository.save(newDeceasedSocialMediaLink);
   }
 
   private async updateSocialMediaLink(
@@ -120,20 +122,22 @@ export class DeceasedSocialMediaLinkService {
   }
 
   private constructCreateDeceasedSocialMediaLinkDto(
+    userId: string,
     dto: CreateDeceasedSocialMediaLinkDto,
     deceased: TCreateDeceasedSocialMediaLink,
   ): IDeceasedSocialMediaLink {
     return {
+      deceased: deceased as Deceased,
+      user: { id: userId } as User,
       platform: dto.platform,
       url: dto.url,
-      deceased,
     };
   }
 
   private constructUpdateDeceasedSocialMediaLinkDto(
     dto: UpdateDeceasedSocialMediaLinkDto,
     existingSocialMediaLink: TUpdateDeceasedSocialMediaLink,
-  ): StrictOmit<IDeceasedSocialMediaLink, 'deceased' | 'platform'> {
+  ): StrictOmit<IDeceasedSocialMediaLink, 'deceased' | 'user' | 'platform'> {
     return {
       url: dto.url ?? existingSocialMediaLink.url,
     };

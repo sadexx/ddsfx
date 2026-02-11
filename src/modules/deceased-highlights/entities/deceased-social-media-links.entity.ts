@@ -1,10 +1,12 @@
 import { EntitySchema } from 'typeorm';
 import { Deceased } from 'src/modules/deceased/entities';
 import { EDeceasedSocialMediaLinkPlatform } from 'src/modules/deceased-highlights/common/enums';
+import { User } from 'src/modules/users/entities';
 
 export interface DeceasedSocialMediaLink {
   id: string;
   deceased: Deceased;
+  user: User | null;
   platform: EDeceasedSocialMediaLinkPlatform;
   url: string;
   creationDate: Date;
@@ -53,6 +55,17 @@ export const DeceasedSocialMediaLink = new EntitySchema<DeceasedSocialMediaLink>
       },
       nullable: false,
       onDelete: 'CASCADE',
+    },
+    user: {
+      type: 'many-to-one',
+      target: 'User',
+      joinColumn: {
+        name: 'user_id',
+        referencedColumnName: 'id',
+        foreignKeyConstraintName: 'FK_deceased_social_media_links_users',
+      },
+      nullable: true,
+      onDelete: 'SET NULL',
     },
   },
 });

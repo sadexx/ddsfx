@@ -57,3 +57,4 @@ export const SMTP_SECURE_PORT: number = 465;
 export const API_PREFIX: string = 'v1';
 export const NUMBER_BYTES_IN_KILOBYTE: number = 1024;
 export const NUMBER_BYTES_IN_MEGABYTE: number = 1_048_576;
+export const THIS_YEAR: number = new Date().getFullYear();

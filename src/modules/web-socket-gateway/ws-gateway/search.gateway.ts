@@ -21,7 +21,6 @@ import { EConnectionTypes, EWebSocketEventTypes } from 'src/modules/web-socket-g
 import { SearchEventDto } from 'src/modules/web-socket-gateway/common/dto/search-event.dto';
 import { SearchEngineLogicService } from 'src/modules/search-engine-logic/services';
 import { WsValidationPipe } from 'src/common/pipes';
-import { SearchQueryDto } from 'src/modules/search-engine-logic/common/dto';
 
 @WebSocketGateway(SearchGateway.getGatewayOptions())
 @UseFilters(WsExceptionFilter)
@@ -88,7 +87,7 @@ export class SearchGateway implements OnGatewayInit, OnGatewayConnection, OnGate
   ): Promise<void> {
     switch (message.event) {
       case EWebSocketEventTypes.SEARCH_REQUEST: {
-        const searchResults = await this.searchEngineLogicService.launchSearch(message as unknown as SearchQueryDto, {
+        const searchResults = await this.searchEngineLogicService.launchSearch(message, {
           ipAddress: client.user.clientIpAddress,
           userAgent: client.user.clientUserAgent,
         });

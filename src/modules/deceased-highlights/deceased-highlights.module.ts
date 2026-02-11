@@ -3,18 +3,14 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import {
   DeceasedBiographyController,
   DeceasedEducationController,
-  DeceasedEmploymentController,
-  DeceasedHobbyController,
   DeceasedResidenceController,
   DeceasedSocialMediaLinkController,
 } from 'src/modules/deceased-highlights/controllers';
 import {
   DeceasedBiographyService,
   DeceasedEducationService,
-  DeceasedEmploymentService,
   DeceasedHighLightsQueryOptionsService,
   DeceasedHighlightsValidationService,
-  DeceasedHobbyService,
   DeceasedResidenceService,
   DeceasedSocialMediaLinkService,
 } from 'src/modules/deceased-highlights/services';
@@ -22,35 +18,20 @@ import { DeceasedModule } from 'src/modules/deceased/deceased.module';
 import { Deceased } from 'src/modules/deceased/entities';
 import {
   DeceasedBiography,
-  DeceasedEducation,
-  DeceasedEmployment,
-  DeceasedHobby,
-  DeceasedHobbyTag,
-  DeceasedHobbyTagCategory,
-  DeceasedResidence,
+  DeceasedPlaceEntry,
   DeceasedSocialMediaLink,
 } from 'src/modules/deceased-highlights/entities';
+import { HelperModule } from 'src/modules/helper/helper.module';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([
-      Deceased,
-      DeceasedBiography,
-      DeceasedEducation,
-      DeceasedEmployment,
-      DeceasedHobbyTagCategory,
-      DeceasedHobbyTag,
-      DeceasedHobby,
-      DeceasedResidence,
-      DeceasedSocialMediaLink,
-    ]),
+    TypeOrmModule.forFeature([Deceased, DeceasedBiography, DeceasedPlaceEntry, DeceasedSocialMediaLink]),
     DeceasedModule,
+    HelperModule,
   ],
   controllers: [
     DeceasedBiographyController,
     DeceasedEducationController,
-    DeceasedEmploymentController,
-    DeceasedHobbyController,
     DeceasedResidenceController,
     DeceasedSocialMediaLinkController,
   ],
@@ -59,8 +40,6 @@ import {
     DeceasedHighlightsValidationService,
     DeceasedBiographyService,
     DeceasedEducationService,
-    DeceasedEmploymentService,
-    DeceasedHobbyService,
     DeceasedResidenceService,
     DeceasedSocialMediaLinkService,
   ],

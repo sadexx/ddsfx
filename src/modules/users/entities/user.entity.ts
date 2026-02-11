@@ -6,6 +6,11 @@ import { DeceasedSubscription } from 'src/modules/deceased/entities';
 import { DeceasedCorrection } from 'src/modules/deceased-correction/entities';
 import { Post } from 'src/modules/posts/entities';
 import { ERegistrationStrategy } from 'src/modules/auth/common/enums';
+import {
+  DeceasedBiography,
+  DeceasedPlaceEntry,
+  DeceasedSocialMediaLink,
+} from 'src/modules/deceased-highlights/entities';
 
 export interface User {
   id: string;
@@ -18,6 +23,9 @@ export interface User {
   deceasedCorrections: DeceasedCorrection[];
   posts: Post[];
   avatar: UserAvatar | null;
+  deceasedPlaceEntries: DeceasedPlaceEntry[];
+  deceasedBiographies: DeceasedBiography[];
+  deceasedSocialMediaLinks: DeceasedSocialMediaLink[];
   email: string | null;
   isEmailVerified: boolean;
   passwordHash: string | null;
@@ -123,6 +131,21 @@ export const User = new EntitySchema<User>({
     avatar: {
       type: 'one-to-one',
       target: 'UserAvatar',
+      inverseSide: 'user',
+    },
+    deceasedPlaceEntries: {
+      type: 'one-to-many',
+      target: 'DeceasedPlaceEntry',
+      inverseSide: 'user',
+    },
+    deceasedBiographies: {
+      type: 'one-to-many',
+      target: 'DeceasedBiography',
+      inverseSide: 'user',
+    },
+    deceasedSocialMediaLinks: {
+      type: 'one-to-many',
+      target: 'DeceasedSocialMediaLink',
       inverseSide: 'user',
     },
   },

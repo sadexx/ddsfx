@@ -16,7 +16,7 @@ export class QueueProducerService {
       },
     };
 
-    await this.queueManagementService.addJob(jobData, { jobId: `process-payment:${paymentId}` });
+    await this.queueManagementService.addJob(jobData, { jobId: `process-payment-${paymentId}` });
   }
 
   public async addProcessNotificationQueue(sqsMessages: { message: string; userId: string }[]): Promise<void> {

@@ -5,6 +5,7 @@ import { PostMediaContent, PostTemplate } from 'src/modules/posts/entities';
 import { DeceasedMediaContent } from 'src/modules/deceased/entities';
 import { UserAvatar } from 'src/modules/users/entities';
 import { ContactMethod } from 'src/modules/informational-pages/entities';
+import { ReferenceCatalog } from 'src/modules/reference-catalog/entities';
 
 export interface File {
   id: string;
@@ -13,6 +14,7 @@ export interface File {
   userAvatar: UserAvatar | null;
   contactMethod: ContactMethod | null;
   postTemplate: PostTemplate | null;
+  referenceCatalog: ReferenceCatalog | null;
   uploadedByUserId: string;
   storageType: string;
   storageClass: StorageClass;
@@ -27,6 +29,7 @@ export interface File {
   size: number;
   mimetype: EContentType;
   extension: EFileExtension;
+  isDefault: boolean;
   creationDate: Date;
   updatingDate: Date;
 }
@@ -102,6 +105,11 @@ export const File = new EntitySchema<File>({
       name: 'extension',
       enum: EFileExtension,
     },
+    isDefault: {
+      type: 'boolean',
+      name: 'is_default',
+      default: false,
+    },
     creationDate: {
       type: 'timestamptz',
       name: 'creation_date',
@@ -137,6 +145,11 @@ export const File = new EntitySchema<File>({
     postTemplate: {
       type: 'one-to-one',
       target: 'PostTemplate',
+      inverseSide: 'file',
+    },
+    referenceCatalog: {
+      type: 'one-to-one',
+      target: 'ReferenceCatalog',
       inverseSide: 'file',
     },
   },

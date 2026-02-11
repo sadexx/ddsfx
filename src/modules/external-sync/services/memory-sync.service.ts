@@ -3,7 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { Client } from 'pg';
 import { EnvConfig } from 'src/config/common/types';
 import { LokiLogger } from 'src/libs/logger';
-import { IRawMemoryDataset, ITransformedMemoryDataset } from '../common/interfaces';
+import { IRawMemoryDataset, ITransformedMemoryDataset } from 'src/modules/external-sync/common/interfaces';
 import { EUserGender } from 'src/modules/users/common/enum';
 import { ENV_CONFIG_TOKEN } from 'src/config/common/constants';
 

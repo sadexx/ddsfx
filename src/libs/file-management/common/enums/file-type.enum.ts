@@ -13,6 +13,7 @@ export const EFileType = {
   POST_TEMPLATES: 'post-templates',
   USER_AVATARS: 'user-avatars',
   CONTACT_US: 'contact-us',
+  REFERENCE_CATALOGS: 'reference-catalogs',
 } as const;
 
 export type EFileType = ValuesOf<typeof EFileType>;

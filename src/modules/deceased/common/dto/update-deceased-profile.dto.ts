@@ -2,11 +2,13 @@ import { Type } from '@sinclair/typebox';
 import { DayPattern, MonthPattern, StandardStringPattern, UUIDPattern, YearPattern } from 'src/common/validators';
 import { UpdateGraveLocationDto } from 'src/modules/cemetery/common/dto';
 import { validateBirthBeforeDeath, validateDateConfirmationRequirement } from 'src/modules/deceased/common/validators';
+import { EUserGender } from 'src/modules/users/common/enum';
 
 export class UpdateDeceasedProfileDto {
   firstName?: string;
   lastName?: string;
   middleName?: string | null;
+  gender?: EUserGender;
   deathDay?: number | null;
   deathMonth?: number | null;
   deathYear?: number | null;
@@ -22,6 +24,7 @@ export class UpdateDeceasedProfileDto {
       firstName: Type.Optional(StandardStringPattern),
       lastName: Type.Optional(StandardStringPattern),
       middleName: Type.Optional(Type.Union([StandardStringPattern, Type.Null()])),
+      gender: Type.Optional(Type.Enum(EUserGender)),
       deathDay: Type.Optional(Type.Union([DayPattern, Type.Null()])),
       deathMonth: Type.Optional(Type.Union([MonthPattern, Type.Null()])),
       deathYear: Type.Optional(Type.Union([YearPattern, Type.Null()])),

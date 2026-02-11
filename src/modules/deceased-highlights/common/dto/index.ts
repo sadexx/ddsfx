@@ -2,10 +2,6 @@ export * from 'src/modules/deceased-highlights/common/dto/create-deceased-reside
 export * from 'src/modules/deceased-highlights/common/dto/update-deceased-residence.dto';
 export * from 'src/modules/deceased-highlights/common/dto/create-deceased-educations.dto';
 export * from 'src/modules/deceased-highlights/common/dto/update-deceased-education.dto';
-export * from 'src/modules/deceased-highlights/common/dto/create-deceased-employments.dto';
-export * from 'src/modules/deceased-highlights/common/dto/update-deceased-employment.dto';
-export * from 'src/modules/deceased-highlights/common/dto/create-deceased-hobby.dto';
-export * from 'src/modules/deceased-highlights/common/dto/update-deceased-hobby.dto';
 export * from 'src/modules/deceased-highlights/common/dto/create-deceased-biography.dto';
 export * from 'src/modules/deceased-highlights/common/dto/create-deceased-social-media-link.dto';
 export * from 'src/modules/deceased-highlights/common/dto/update-deceased-social-media-link.dto';

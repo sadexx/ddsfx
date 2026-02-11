@@ -7,7 +7,7 @@ import { RedisService } from 'src/libs/redis/services';
 import { LokiLogger } from 'src/libs/logger';
 import { NUMBER_OF_MINUTES_IN_DAY, NUMBER_OF_SECONDS_IN_MINUTE } from 'src/common/constants';
 import { MessageOutput } from 'src/common/outputs';
-import { SettingsQuery, TSettings } from 'src/modules/settings/common/types';
+import { MobileSettingsQuery, SettingsQuery, TMobileSettings, TSettings } from 'src/modules/settings/common/types';
 import { findManyTyped } from 'src/common/utils/find-many-typed';
 import { StrictOmit } from 'src/common/types';
 
@@ -15,6 +15,7 @@ import { StrictOmit } from 'src/common/types';
 export class SettingsService {
   private readonly lokiLogger = new LokiLogger(SettingsService.name);
   private readonly CACHE_KEY: string = 'global-settings';
+  private readonly MOBILE_CACHE_KEY: string = 'mobile-settings';
 
   constructor(
     @InjectRepository(Setting)
@@ -29,6 +30,9 @@ export class SettingsService {
       const seedData: StrictOmit<Setting, 'id' | 'creationDate' | 'updatingDate'> = {
         description: 'Default description',
         fastSearchMaxRequestsPerHour: 100,
+        mobileFileKey: 'AWS CloudFront URL',
+        mobilePreviewFileKey: 'AWS CloudFront URL',
+        mobilePortraitFileKey: 'AWS CloudFront URL',
       };
 
       const setting = this.settingsRepository.create(seedData);
@@ -59,9 +63,31 @@ export class SettingsService {
     return settings;
   }
 
+  public async getMobileSettings(): Promise<TMobileSettings> {
+    const CACHE_TTL = NUMBER_OF_MINUTES_IN_DAY * NUMBER_OF_SECONDS_IN_MINUTE;
+    const cacheData = await this.redisService.getJson<TMobileSettings>(this.MOBILE_CACHE_KEY);
+
+    if (cacheData) {
+      return cacheData;
+    }
+
+    const [settings] = await findManyTyped<TMobileSettings[]>(this.settingsRepository, {
+      select: MobileSettingsQuery.select,
+    });
+
+    if (!settings) {
+      throw new NotFoundException('Settings not found in the database.');
+    }
+
+    await this.redisService.setJson(this.MOBILE_CACHE_KEY, settings, CACHE_TTL);
+
+    return settings;
+  }
+
   public async updateSetting(dto: UpdateSettingDto): Promise<MessageOutput> {
     await this.settingsRepository.updateAll(dto);
     await this.redisService.del(this.CACHE_KEY);
+    await this.redisService.del(this.MOBILE_CACHE_KEY);
 
     return { message: 'Settings updated successfully.' };
   }

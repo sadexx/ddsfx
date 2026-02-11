@@ -11,7 +11,9 @@ export const GetDeceasedBiographiesQuery = {
   select: {
     id: true,
     description: true,
+    user: { id: true, profile: { firstName: true, middleName: true, lastName: true } },
   } as const satisfies FindOptionsSelect<DeceasedBiography>,
+  relations: { user: { profile: true } } as const satisfies FindOptionsRelations<DeceasedBiography>,
 };
 export type TGetDeceasedBiographies = QueryResultType<DeceasedBiography, typeof GetDeceasedBiographiesQuery.select>;
 
@@ -28,17 +30,19 @@ export const UpdateDeceasedBiographyQuery = {
   select: {
     id: true,
     description: true,
+    user: { id: true },
     deceased: { id: true },
   } as const satisfies FindOptionsSelect<DeceasedBiography>,
-  relations: { deceased: true } as const satisfies FindOptionsRelations<DeceasedBiography>,
+  relations: { user: true, deceased: true } as const satisfies FindOptionsRelations<DeceasedBiography>,
 };
 export type TUpdateDeceasedBiography = QueryResultType<DeceasedBiography, typeof UpdateDeceasedBiographyQuery.select>;
 
 export const RemoveDeceasedBiographyQuery = {
   select: {
     id: true,
+    user: { id: true },
     deceased: { id: true },
   } as const satisfies FindOptionsSelect<DeceasedBiography>,
-  relations: { deceased: true } as const satisfies FindOptionsRelations<DeceasedBiography>,
+  relations: { user: true, deceased: true } as const satisfies FindOptionsRelations<DeceasedBiography>,
 };
 export type TRemoveDeceasedBiography = QueryResultType<DeceasedBiography, typeof RemoveDeceasedBiographyQuery.select>;

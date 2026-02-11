@@ -12,7 +12,9 @@ export const GetDeceasedSocialMediaLinksQuery = {
     id: true,
     platform: true,
     url: true,
+    user: { id: true, profile: { firstName: true, middleName: true, lastName: true } },
   } as const satisfies FindOptionsSelect<DeceasedSocialMediaLink>,
+  relations: { user: { profile: true } } as const satisfies FindOptionsRelations<DeceasedSocialMediaLink>,
 };
 export type TGetDeceasedSocialMediaLinks = QueryResultType<
   DeceasedSocialMediaLink,
@@ -36,9 +38,10 @@ export const UpdateDeceasedSocialMediaLinkQuery = {
     id: true,
     platform: true,
     url: true,
+    user: { id: true },
     deceased: { id: true },
   } as const satisfies FindOptionsSelect<DeceasedSocialMediaLink>,
-  relations: { deceased: true } as const satisfies FindOptionsRelations<DeceasedSocialMediaLink>,
+  relations: { user: true, deceased: true } as const satisfies FindOptionsRelations<DeceasedSocialMediaLink>,
 };
 export type TUpdateDeceasedSocialMediaLink = QueryResultType<
   DeceasedSocialMediaLink,
@@ -48,9 +51,10 @@ export type TUpdateDeceasedSocialMediaLink = QueryResultType<
 export const RemoveDeceasedSocialMediaLinkQuery = {
   select: {
     id: true,
+    user: { id: true },
     deceased: { id: true },
   } as const satisfies FindOptionsSelect<DeceasedSocialMediaLink>,
-  relations: { deceased: true } as const satisfies FindOptionsRelations<DeceasedSocialMediaLink>,
+  relations: { user: true, deceased: true } as const satisfies FindOptionsRelations<DeceasedSocialMediaLink>,
 };
 export type TRemoveDeceasedSocialMediaLink = QueryResultType<
   DeceasedSocialMediaLink,

@@ -1,43 +1,37 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import {
   CreateDeceasedEducationsDto,
-  CreateDeceasedEmploymentsDto,
-  CreateDeceasedHobbyDto,
   CreateDeceasedResidencesDto,
   CreateDeceasedSocialMediaLinkDto,
   UpdateDeceasedEducationDto,
-  UpdateDeceasedEmploymentDto,
-  UpdateDeceasedHobbyDto,
   UpdateDeceasedResidenceDto,
   UpdateDeceasedSocialMediaLinkDto,
 } from 'src/modules/deceased-highlights/common/dto';
 import {
   TCreateDeceasedBiography,
   TCreateDeceasedEducations,
-  TCreateDeceasedEmployments,
-  TCreateDeceasedHobby,
   TCreateDeceasedResidences,
   TCreateDeceasedSocialMediaLink,
   TUpdateDeceasedEducation,
-  TUpdateDeceasedEmployment,
   TUpdateDeceasedResidence,
   TUpdateDeceasedSocialMediaLink,
 } from 'src/modules/deceased-highlights/common/types';
-import { DeceasedHobbyTag, DeceasedResidence } from 'src/modules/deceased-highlights/entities';
+import { DeceasedPlaceEntry } from 'src/modules/deceased-highlights/entities';
 import { DeceasedHighLightsQueryOptionsService } from 'src/modules/deceased-highlights/services';
 import { SOCIAL_MEDIA_LINK_PATTERNS } from 'src/modules/deceased-highlights/common/constants';
+import { HelperService } from 'src/modules/helper/services';
+import { ITokenUserPayload } from 'src/libs/tokens/common/interfaces';
 
 @Injectable()
 export class DeceasedHighlightsValidationService {
   private readonly HIGHLIGHTS_LIMIT: number = 20;
   constructor(
-    @InjectRepository(DeceasedResidence)
-    private readonly deceasedResidenceRepository: Repository<DeceasedResidence>,
-    @InjectRepository(DeceasedHobbyTag)
-    private readonly deceasedHobbyTagRepository: Repository<DeceasedHobbyTag>,
+    @InjectRepository(DeceasedPlaceEntry)
+    private readonly deceasedPlaceEntryRepository: Repository<DeceasedPlaceEntry>,
     private readonly deceasedHighLightsQueryOptionsService: DeceasedHighLightsQueryOptionsService,
+    private readonly helperService: HelperService,
   ) {}
 
   /**
@@ -48,29 +42,36 @@ export class DeceasedHighlightsValidationService {
     dto: CreateDeceasedResidencesDto,
     deceased: TCreateDeceasedResidences,
   ): Promise<void> {
+    this.validateEntitiesLimit(deceased.deceasedPlaceEntries, dto.residences.length);
+
+    const referenceIds = dto.residences.flatMap((residence) => [residence.cityId]);
+    await this.helperService.ensureReferencesExist(referenceIds);
+
     const hasNewBirthPlace = dto.residences.some((residence) => residence.isBirthPlace);
 
     if (hasNewBirthPlace) {
       await this.validateBirthplaceConstraint(deceased.id);
     }
-
-    this.validateEntitiesLimit(deceased.deceasedResidences, dto.residences.length);
   }
 
   public async validateUpdateDeceasedResidence(
     dto: UpdateDeceasedResidenceDto,
     existingDeceasedResidence: TUpdateDeceasedResidence,
   ): Promise<void> {
+    this.validateEntityYearRange(existingDeceasedResidence, dto.startYear, dto.endYear);
+
     if (dto.isBirthPlace === true && existingDeceasedResidence.isBirthPlace === false) {
       await this.validateBirthplaceConstraint(existingDeceasedResidence.deceased.id);
     }
 
-    this.validateEntityYearRange(existingDeceasedResidence, dto.startYear, dto.endYear);
+    if (dto.cityId) {
+      await this.helperService.ensureReferencesExist([dto.cityId]);
+    }
   }
 
   private async validateBirthplaceConstraint(deceasedId: string): Promise<void> {
     const queryOptions = this.deceasedHighLightsQueryOptionsService.validateCreateDeceasedResidencesOptions(deceasedId);
-    const existingBirthPlace = await this.deceasedResidenceRepository.exists(queryOptions);
+    const existingBirthPlace = await this.deceasedPlaceEntryRepository.exists(queryOptions);
 
     if (existingBirthPlace) {
       throw new BadRequestException('Only one deceased residence can be marked as birthplace');
@@ -81,59 +82,30 @@ export class DeceasedHighlightsValidationService {
    ** DeceasedEducationService
    */
 
-  public validateCreateDeceasedEducations(dto: CreateDeceasedEducationsDto, deceased: TCreateDeceasedEducations): void {
-    this.validateEntitiesLimit(deceased.deceasedEducations, dto.educations.length);
+  public async validateCreateDeceasedEducations(
+    dto: CreateDeceasedEducationsDto,
+    deceased: TCreateDeceasedEducations,
+  ): Promise<void> {
+    this.validateEntitiesLimit(deceased.deceasedPlaceEntries, dto.educations.length);
+
+    const referenceIds = dto.educations
+      .flatMap((education) => [education.institutionNameId, education.specializationId])
+      .filter((id) => id !== undefined);
+    await this.helperService.ensureReferencesExist(referenceIds);
   }
 
-  public validateUpdateDeceasedEducation(
+  public async validateUpdateDeceasedEducation(
     dto: UpdateDeceasedEducationDto,
     existingDeceasedResidence: TUpdateDeceasedEducation,
-  ): void {
+  ): Promise<void> {
     this.validateEntityYearRange(existingDeceasedResidence, dto.startYear, dto.endYear);
-  }
 
-  /**
-   ** DeceasedEmploymentService
-   */
+    const referenceIds = [dto.institutionNameId, dto.specializationId].filter(
+      (id): id is string => id !== undefined && id !== null,
+    );
 
-  public validateCreateDeceasedEmployments(
-    dto: CreateDeceasedEmploymentsDto,
-    deceased: TCreateDeceasedEmployments,
-  ): void {
-    this.validateEntitiesLimit(deceased.deceasedEmployments, dto.employments.length);
-  }
-
-  public validateUpdateDeceasedEmployment(
-    dto: UpdateDeceasedEmploymentDto,
-    existingDeceasedEmployment: TUpdateDeceasedEmployment,
-  ): void {
-    this.validateEntityYearRange(existingDeceasedEmployment, dto.startYear, dto.endYear);
-  }
-
-  /**
-   ** DeceasedHobbyService
-   */
-
-  public async validateCreateDeceasedHobby(dto: CreateDeceasedHobbyDto, deceased: TCreateDeceasedHobby): Promise<void> {
-    this.validateEntitiesLimit(deceased.deceasedHobbies, 1);
-
-    if (dto.tagIds && dto.tagIds.length > 0) {
-      await this.ensureHobbyTagsExist(dto.tagIds);
-    }
-  }
-
-  public async validateUpdateDeceasedHobby(dto: UpdateDeceasedHobbyDto): Promise<void> {
-    if (dto.tagIds && dto.tagIds.length > 0) {
-      await this.ensureHobbyTagsExist(dto.tagIds);
-    }
-  }
-
-  private async ensureHobbyTagsExist(tagIds: string[]): Promise<void> {
-    const queryOptions = this.deceasedHighLightsQueryOptionsService.ensureHobbyTagsExistOptions(tagIds);
-    const existingTagsCount = await this.deceasedHobbyTagRepository.count(queryOptions);
-
-    if (existingTagsCount !== tagIds.length) {
-      throw new BadRequestException('Some tags do not exist');
+    if (referenceIds.length !== 0) {
+      await this.helperService.ensureReferencesExist(referenceIds);
     }
   }
 
@@ -176,6 +148,16 @@ export class DeceasedHighlightsValidationService {
   /**
    ** Common helpers
    */
+
+  public validateOwnership(currentUser: ITokenUserPayload, entityUser: { id: string } | null): void {
+    if (entityUser === null) {
+      throw new BadRequestException('This highlight has no owner and cannot be edited');
+    }
+
+    if (entityUser.id !== currentUser.sub) {
+      throw new ForbiddenException('You can only edit your own highlights');
+    }
+  }
 
   private validateEntitiesLimit(existingEntities: { id: string }[], newEntityItemsCount: number): void {
     if (existingEntities.length + newEntityItemsCount > this.HIGHLIGHTS_LIMIT) {

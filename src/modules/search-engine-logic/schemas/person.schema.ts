@@ -1,3 +1,5 @@
+import { EDeceasedStatus } from 'src/modules/deceased/common/enums';
+
 export class PersonSchema {
   id: string;
   originalId: number | null;
@@ -7,6 +9,8 @@ export class PersonSchema {
   cemeteryName: string | null;
   regionName: string | null;
   regionFullName: string | null;
+  status: EDeceasedStatus;
+  isFamousPerson: boolean;
   gender: string | null;
   firstName: string | null;
   lastName: string | null;
@@ -23,6 +27,7 @@ export class PersonSchema {
   fileKey: string | null;
   portraitFileKey: string | null;
   deceasedSubscriptions: DeceasedSubscription[];
+  deceasedSubscriptionsCount: number;
 }
 
 interface DeceasedSubscription {

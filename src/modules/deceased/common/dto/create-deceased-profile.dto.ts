@@ -4,11 +4,13 @@ import { DayPattern, MonthPattern, StandardStringPattern, UUIDPattern, YearPatte
 import { CreateGraveLocationDto } from 'src/modules/cemetery/common/dto';
 import { CreateDeceasedSubscriptionDto } from 'src/modules/deceased/common/dto';
 import { validateBirthBeforeDeath, validateDateConfirmationRequirement } from 'src/modules/deceased/common/validators';
+import { EUserGender } from 'src/modules/users/common/enum';
 
 export class CreateDeceasedProfileDto {
   firstName?: string;
   lastName?: string;
   middleName?: string;
+  gender: EUserGender;
   deathDay?: number;
   deathMonth?: number;
   deathYear?: number;
@@ -25,6 +27,7 @@ export class CreateDeceasedProfileDto {
       firstName: Type.Optional(StandardStringPattern),
       lastName: Type.Optional(StandardStringPattern),
       middleName: Type.Optional(StandardStringPattern),
+      gender: Type.Enum(EUserGender),
       deathDay: Type.Optional(DayPattern),
       deathMonth: Type.Optional(MonthPattern),
       deathYear: Type.Optional(YearPattern),

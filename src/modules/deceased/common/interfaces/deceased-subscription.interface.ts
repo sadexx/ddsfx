@@ -1,11 +1,5 @@
-import { EKinshipType } from 'src/modules/deceased/common/enums';
-import {
-  TConstructAndCreateDeceasedSubscriptionDeceased,
-  TConstructAndCreateDeceasedSubscriptionUser,
-} from 'src/modules/deceased/common/types';
+/* eslint-disable @typescript-eslint/no-empty-object-type */
+import { CreatePayload } from 'src/common/types';
+import { DeceasedSubscription } from 'src/modules/deceased/entities';
 
-export interface IDeceasedSubscription {
-  kinshipType: EKinshipType;
-  user: TConstructAndCreateDeceasedSubscriptionUser;
-  deceased: TConstructAndCreateDeceasedSubscriptionDeceased;
-}
+export interface IDeceasedSubscription extends CreatePayload<DeceasedSubscription> {}

@@ -1,4 +1,5 @@
 import { Type, Static } from '@sinclair/typebox';
+import { THIS_YEAR } from 'src/common/constants';
 
 export const SearchQueryDto = Type.Object(
   {
@@ -31,7 +32,7 @@ export const SearchQueryDto = Type.Object(
     birthYear: Type.Optional(
       Type.Integer({
         minimum: 1800,
-        maximum: 2100,
+        maximum: THIS_YEAR,
         description: 'Filter by birth year',
       }),
     ),
@@ -52,7 +53,7 @@ export const SearchQueryDto = Type.Object(
     deathYear: Type.Optional(
       Type.Integer({
         minimum: 1800,
-        maximum: 2100,
+        maximum: THIS_YEAR,
         description: 'Filter by death year',
       }),
     ),

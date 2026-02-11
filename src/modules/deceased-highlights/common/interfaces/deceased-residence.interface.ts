@@ -1,11 +1,10 @@
-import { TCreateDeceasedResidences, TUpdateDeceasedResidence } from 'src/modules/deceased-highlights/common/types';
+import { EDeceasedPlaceEntryType } from 'src/modules/deceased-highlights/common/enums';
+import { ReferenceCatalog } from 'src/modules/reference-catalog/entities';
+import { CreatePayload } from 'src/common/types';
+import { DeceasedPlaceEntry } from 'src/modules/deceased-highlights/entities';
 
-export interface IDeceasedResidence {
-  city: string;
+export interface IDeceasedResidence extends CreatePayload<DeceasedPlaceEntry, 'institutionName' | 'specialization'> {
+  type: typeof EDeceasedPlaceEntryType.RESIDENCE;
+  city: ReferenceCatalog;
   isBirthPlace: boolean;
-  country: string | null;
-  description: string | null;
-  startYear: number | null;
-  endYear: number | null;
-  deceased: TCreateDeceasedResidences | TUpdateDeceasedResidence;
 }

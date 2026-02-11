@@ -12,4 +12,5 @@ export const enum EFolderPath {
   POST_TEMPLATES = 'media/content-management/posts/templates',
   USER_AVATARS = 'media/users/avatars',
   CONTACT_US = 'media/content-management/informational-pages/contact-us',
+  REFERENCE_CATALOGS = 'media/content-management/reference-catalogs',
 }

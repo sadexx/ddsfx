@@ -21,6 +21,7 @@ export const DeleteFileQuery = {
     id: true,
     bucketName: true,
     fileKey: true,
+    isDefault: true,
   } as const satisfies FindOptionsSelect<File>,
 };
 export type TDeleteFile = QueryResultType<File, typeof DeleteFileQuery.select>;
@@ -32,9 +33,14 @@ export const CopyFileQuery = {
     storageType: true,
     storageClass: true,
     storageRegion: true,
+    storagePath: true,
     size: true,
     mimetype: true,
     bucketName: true,
+    originalName: true,
+    originalFullName: true,
+    storageKey: true,
+    isDefault: true,
   } as const satisfies FindOptionsSelect<File>,
 };
 export type TCopyFile = QueryResultType<File, typeof CopyFileQuery.select>;

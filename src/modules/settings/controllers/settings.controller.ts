@@ -4,16 +4,20 @@ import { MessageOutput } from 'src/common/outputs';
 import { NotEmptyBodyPipe } from 'src/common/pipes';
 import { SettingsService } from 'src/modules/settings/services';
 import { UpdateSettingDto } from 'src/modules/settings/common/dto';
-import { TSettings } from 'src/modules/settings/common/types';
+import { TMobileSettings, TSettings } from 'src/modules/settings/common/types';
 
 @Controller('settings')
 export class SettingsController {
   constructor(private readonly settingsService: SettingsService) {}
 
   @Get()
-  @RouteSchema({ response: { 200: UpdateSettingDto.schema } })
-  public async findAll(): Promise<TSettings> {
+  public async getSettings(): Promise<TSettings> {
     return this.settingsService.getSettings();
+  }
+
+  @Get('mobile')
+  public async getMobileSettings(): Promise<TMobileSettings> {
+    return this.settingsService.getMobileSettings();
   }
 
   @Patch()

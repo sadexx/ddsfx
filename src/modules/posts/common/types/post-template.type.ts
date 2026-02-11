@@ -18,7 +18,7 @@ export type TGetPostTemplates = QueryResultType<PostTemplate, typeof GetPostTemp
 export const UpdatePostTemplateQuery = {
   select: {
     id: true,
-    file: { id: true, fileKey: true, bucketName: true },
+    file: { id: true, fileKey: true, bucketName: true, isDefault: true },
   } as const satisfies FindOptionsSelect<PostMediaContent>,
   relations: { file: true } as const satisfies FindOptionsRelations<PostMediaContent>,
 };

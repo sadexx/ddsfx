@@ -168,6 +168,8 @@ export class DeceasedService {
   private constructCreateDeceasedProfileDto(dto: CreateDeceasedProfileDto): IDeceased {
     return {
       status: EDeceasedStatus.PENDING,
+      isFamousPerson: false,
+      gender: dto.gender,
       originalId: null,
       firstName: dto.firstName ?? null,
       lastName: dto.lastName ?? null,
@@ -199,6 +201,8 @@ export class DeceasedService {
     );
 
     return {
+      isFamousPerson: false,
+      gender: dto.gender !== undefined ? dto.gender : existingDeceased.gender,
       status: existingDeceased.status,
       originalId: existingDeceased.originalId,
       firstName: dto.firstName ?? existingDeceased.firstName,

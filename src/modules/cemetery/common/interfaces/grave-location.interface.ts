@@ -1,10 +1,5 @@
-import { TCreateDeceasedProfileCemetery, TUpdateDeceasedProfileCemetery } from 'src/modules/deceased/common/types';
-import { TConstructGraveLocationDtoDeceased } from 'src/modules/cemetery/common/types';
+/* eslint-disable @typescript-eslint/no-empty-object-type */
+import { CreatePayload } from 'src/common/types';
+import { GraveLocation } from 'src/modules/cemetery/entities';
 
-export interface IGraveLocation {
-  latitude: number | null;
-  longitude: number | null;
-  altitude: number | null;
-  cemetery: TCreateDeceasedProfileCemetery | TUpdateDeceasedProfileCemetery;
-  deceased: TConstructGraveLocationDtoDeceased;
-}
+export interface IGraveLocation extends CreatePayload<GraveLocation> {}

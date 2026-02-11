@@ -26,6 +26,7 @@ export const FOLDER_PATH_MAP: Record<EFileType, string> = {
   [EFileType.POST_TEMPLATES]: EFolderPath.POST_TEMPLATES,
   [EFileType.USER_AVATARS]: EFolderPath.USER_AVATARS,
   [EFileType.CONTACT_US]: EFolderPath.CONTACT_US,
+  [EFileType.REFERENCE_CATALOGS]: EFolderPath.REFERENCE_CATALOGS,
 };
 
 /**

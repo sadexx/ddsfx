@@ -87,10 +87,10 @@ export class DeceasedMediaContentService {
     const INITIAL_ORDER: number = 0;
 
     return {
+      deceased: deceased as Deceased,
+      file: { id: dto.id } as File,
       contentType,
       order: INITIAL_ORDER,
-      file: { id: dto.id } as File,
-      deceased,
     };
   }
 }

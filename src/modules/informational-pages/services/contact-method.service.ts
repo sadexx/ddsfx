@@ -73,9 +73,9 @@ export class ContactMethodService {
 
   private constructCreateContactMethodDto(dto: CreateContactMethodDto): IContactMethod {
     return {
+      file: { id: dto.fileId } as File,
       description: dto.description,
       url: dto.url,
-      file: { id: dto.fileId } as File,
     };
   }
 

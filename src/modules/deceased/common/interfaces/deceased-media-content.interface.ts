@@ -1,10 +1,5 @@
-import { EDeceasedMediaContentType } from 'src/modules/deceased/common/enums';
-import { File } from 'src/libs/file-management/entities';
-import { TCreateDeceasedMediaContent } from 'src/modules/deceased/common/types';
+/* eslint-disable @typescript-eslint/no-empty-object-type */
+import { CreatePayload } from 'src/common/types';
+import { DeceasedMediaContent } from 'src/modules/deceased/entities';
 
-export interface IDeceasedMediaContent {
-  contentType: EDeceasedMediaContentType;
-  order: number;
-  deceased: TCreateDeceasedMediaContent;
-  file: File;
-}
+export interface IDeceasedMediaContent extends CreatePayload<DeceasedMediaContent> {}

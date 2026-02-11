@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { ForbiddenException, Injectable } from '@nestjs/common';
 import { Deceased, DeceasedSubscription } from 'src/modules/deceased/entities';
 import { DataSource, EntityManager, Repository } from 'typeorm';
 import { CreateDeceasedSubscriptionDto } from 'src/modules/deceased/common/dto';
@@ -111,7 +111,7 @@ export class DeceasedSubscriptionService {
     const deceasedSubscriptionExists = await this.deceasedSubscriptionRepository.exists(queryOptions);
 
     if (!deceasedSubscriptionExists) {
-      throw new BadRequestException('You do not have access to this deceased profile');
+      throw new ForbiddenException('You do not have access to this deceased profile');
     }
   }
 
@@ -159,9 +159,9 @@ export class DeceasedSubscriptionService {
     deceased: TConstructAndCreateDeceasedSubscriptionDeceased,
   ): IDeceasedSubscription {
     return {
+      deceased: deceased as Deceased,
+      user: user as User,
       kinshipType: dto.kinshipType,
-      deceased,
-      user,
     };
   }
 }

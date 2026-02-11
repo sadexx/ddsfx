@@ -1,7 +1,5 @@
-import { FaqCategory } from 'src/modules/informational-pages/entities';
+/* eslint-disable @typescript-eslint/no-empty-object-type */
+import { FaqItem } from 'src/modules/informational-pages/entities';
+import { CreatePayload } from 'src/common/types';
 
-export interface IFaqItem {
-  question: string;
-  answer: string;
-  category: FaqCategory;
-}
+export interface IFaqItem extends CreatePayload<FaqItem> {}

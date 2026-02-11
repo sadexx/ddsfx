@@ -41,6 +41,7 @@ import { DeceasedHighlightsModule } from 'src/modules/deceased-highlights/deceas
 import { PostsModule } from 'src/modules/posts/posts.module';
 import { InformationalPagesModule } from 'src/modules/informational-pages/informational-pages.module';
 import { MockModule } from 'src/modules/mock/mock.module';
+import { ReferenceCatalogModule } from 'src/modules/reference-catalog/reference-catalog.module';
 
 const configModuleOptions: ConfigModuleOptions = {
   isGlobal: true,
@@ -88,6 +89,7 @@ const configModuleOptions: ConfigModuleOptions = {
     PostsModule,
     InformationalPagesModule,
     MockModule,
+    ReferenceCatalogModule,
   ],
   providers: [
     {

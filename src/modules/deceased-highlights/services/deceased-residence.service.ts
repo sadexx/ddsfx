@@ -6,7 +6,7 @@ import {
   CreateDeceasedResidencesDto,
   UpdateDeceasedResidenceDto,
 } from 'src/modules/deceased-highlights/common/dto';
-import { DeceasedResidence } from 'src/modules/deceased-highlights/entities';
+import { DeceasedPlaceEntry } from 'src/modules/deceased-highlights/entities';
 import { Repository } from 'typeorm';
 import { IDeceasedResidence } from 'src/modules/deceased-highlights/common/interfaces';
 import { Deceased } from 'src/modules/deceased/entities';
@@ -14,7 +14,7 @@ import {
   DeceasedHighLightsQueryOptionsService,
   DeceasedHighlightsValidationService,
 } from 'src/modules/deceased-highlights/services';
-import { findOneOrFailTyped } from 'src/common/utils/find-one-typed';
+import { findOneOrFailQueryBuilderTyped, findOneOrFailTyped } from 'src/common/utils/find-one-typed';
 import {
   TCreateDeceasedResidences,
   TGetDeceasedResidences,
@@ -25,14 +25,17 @@ import { StrictOmit } from 'src/common/types';
 import { DeceasedSubscriptionService } from 'src/modules/deceased/services';
 import { ITokenUserPayload } from 'src/libs/tokens/common/interfaces';
 import { findManyTyped } from 'src/common/utils/find-many-typed';
+import { EDeceasedPlaceEntryType } from 'src/modules/deceased-highlights/common/enums';
+import { ReferenceCatalog } from 'src/modules/reference-catalog/entities';
+import { User } from 'src/modules/users/entities';
 
 @Injectable()
 export class DeceasedResidenceService {
   constructor(
     @InjectRepository(Deceased)
     private readonly deceasedRepository: Repository<Deceased>,
-    @InjectRepository(DeceasedResidence)
-    private readonly deceasedResidenceRepository: Repository<DeceasedResidence>,
+    @InjectRepository(DeceasedPlaceEntry)
+    private readonly deceasedPlaceEntryRepository: Repository<DeceasedPlaceEntry>,
     private readonly deceasedHighlightsQueryOptionsService: DeceasedHighLightsQueryOptionsService,
     private readonly deceasedHighlightsValidationService: DeceasedHighlightsValidationService,
     private readonly deceasedSubscriptionService: DeceasedSubscriptionService,
@@ -41,7 +44,7 @@ export class DeceasedResidenceService {
   public async getDeceasedResidences(param: UUIDParamDto): Promise<TGetDeceasedResidences[]> {
     const queryOptions = this.deceasedHighlightsQueryOptionsService.getDeceasedResidencesOptions(param.id);
     const deceasedResidences = await findManyTyped<TGetDeceasedResidences[]>(
-      this.deceasedResidenceRepository,
+      this.deceasedPlaceEntryRepository,
       queryOptions,
     );
 
@@ -53,17 +56,18 @@ export class DeceasedResidenceService {
     dto: CreateDeceasedResidencesDto,
     user: ITokenUserPayload,
   ): Promise<void> {
-    const queryOptions = this.deceasedHighlightsQueryOptionsService.createDeceasedResidencesOptions(param.id);
-    const deceased = await findOneOrFailTyped<TCreateDeceasedResidences>(
+    const queryBuilder = this.deceasedRepository.createQueryBuilder('deceased');
+    this.deceasedHighlightsQueryOptionsService.createDeceasedResidencesOptions(queryBuilder, param.id);
+    const deceased = await findOneOrFailQueryBuilderTyped<TCreateDeceasedResidences>(
       param.id,
-      this.deceasedRepository,
-      queryOptions,
+      queryBuilder,
+      Deceased.options.name,
     );
 
     await this.deceasedSubscriptionService.ensureDeceasedSubscription(user.sub, param.id);
     await this.deceasedHighlightsValidationService.validateCreateDeceasedResidences(dto, deceased);
 
-    await this.constructAndCreateDeceasedResidences(dto, deceased);
+    await this.constructAndCreateDeceasedResidences(user.sub, dto, deceased);
   }
 
   public async updateDeceasedResidence(
@@ -74,11 +78,12 @@ export class DeceasedResidenceService {
     const queryOptions = this.deceasedHighlightsQueryOptionsService.updateDeceasedResidenceOptions(param.id);
     const deceasedResidence = await findOneOrFailTyped<TUpdateDeceasedResidence>(
       param.id,
-      this.deceasedResidenceRepository,
+      this.deceasedPlaceEntryRepository,
       queryOptions,
     );
 
     await this.deceasedSubscriptionService.ensureDeceasedSubscription(user.sub, deceasedResidence.deceased.id);
+    this.deceasedHighlightsValidationService.validateOwnership(user, deceasedResidence.user);
     await this.deceasedHighlightsValidationService.validateUpdateDeceasedResidence(dto, deceasedResidence);
 
     await this.updateResidence(dto, deceasedResidence);
@@ -88,30 +93,30 @@ export class DeceasedResidenceService {
     const queryOptions = this.deceasedHighlightsQueryOptionsService.removeDeceasedResidenceOptions(param.id);
     const deceasedResidence = await findOneOrFailTyped<TRemoveDeceasedResidence>(
       param.id,
-      this.deceasedResidenceRepository,
+      this.deceasedPlaceEntryRepository,
       queryOptions,
     );
 
     await this.deceasedSubscriptionService.ensureDeceasedSubscription(user.sub, deceasedResidence.deceased.id);
+    this.deceasedHighlightsValidationService.validateOwnership(user, deceasedResidence.user);
 
-    await this.deceasedResidenceRepository.delete(deceasedResidence.id);
+    await this.deceasedPlaceEntryRepository.delete(deceasedResidence.id);
   }
 
   private async constructAndCreateDeceasedResidences(
+    userId: string,
     dto: CreateDeceasedResidencesDto,
     deceased: TCreateDeceasedResidences,
-  ): Promise<DeceasedResidence[]> {
+  ): Promise<void> {
     const residenceDtos = dto.residences.map((residence) =>
-      this.constructCreateDeceasedResidenceDto(residence, deceased),
+      this.constructCreateDeceasedResidenceDto(userId, residence, deceased),
     );
-
-    return await this.createDeceasedResidence(residenceDtos);
+    await this.createDeceasedResidence(residenceDtos);
   }
 
-  private async createDeceasedResidence(dto: IDeceasedResidence[]): Promise<DeceasedResidence[]> {
-    const newDeceasedResidence = this.deceasedResidenceRepository.create(dto);
-
-    return await this.deceasedResidenceRepository.save(newDeceasedResidence);
+  private async createDeceasedResidence(dto: IDeceasedResidence[]): Promise<void> {
+    const newDeceasedResidence = this.deceasedPlaceEntryRepository.create(dto);
+    await this.deceasedPlaceEntryRepository.save(newDeceasedResidence);
   }
 
   private async updateResidence(
@@ -119,32 +124,33 @@ export class DeceasedResidenceService {
     existingDeceasedResidence: TUpdateDeceasedResidence,
   ): Promise<void> {
     const deceasedResidenceDto = this.constructUpdateDeceasedResidenceDto(dto, existingDeceasedResidence);
-    await this.deceasedResidenceRepository.update({ id: existingDeceasedResidence.id }, deceasedResidenceDto);
+    await this.deceasedPlaceEntryRepository.update({ id: existingDeceasedResidence.id }, deceasedResidenceDto);
   }
 
   private constructCreateDeceasedResidenceDto(
+    userId: string,
     dto: CreateDeceasedResidenceDto,
     deceased: TCreateDeceasedResidences,
   ): IDeceasedResidence {
     return {
-      city: dto.city,
+      deceased: deceased as Deceased,
+      user: { id: userId } as User,
+      city: { id: dto.cityId } as ReferenceCatalog,
+      type: EDeceasedPlaceEntryType.RESIDENCE,
       isBirthPlace: dto.isBirthPlace ?? false,
-      country: dto.country ?? null,
       description: dto.description ?? null,
       startYear: dto.startYear ?? null,
       endYear: dto.endYear ?? null,
-      deceased,
     };
   }
 
   private constructUpdateDeceasedResidenceDto(
     dto: UpdateDeceasedResidenceDto,
     existingDeceasedResidence: TUpdateDeceasedResidence,
-  ): StrictOmit<IDeceasedResidence, 'deceased'> {
+  ): StrictOmit<IDeceasedResidence, 'deceased' | 'user' | 'type'> {
     return {
-      city: dto.city ?? existingDeceasedResidence.city,
+      city: dto.cityId ? ({ id: dto.cityId } as ReferenceCatalog) : existingDeceasedResidence.city,
       isBirthPlace: dto.isBirthPlace ?? existingDeceasedResidence.isBirthPlace,
-      country: dto.country !== undefined ? dto.country : existingDeceasedResidence.country,
       description: dto.description !== undefined ? dto.description : existingDeceasedResidence.description,
       startYear: dto.startYear !== undefined ? dto.startYear : existingDeceasedResidence.startYear,
       endYear: dto.endYear !== undefined ? dto.endYear : existingDeceasedResidence.endYear,

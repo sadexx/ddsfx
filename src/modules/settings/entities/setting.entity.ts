@@ -4,6 +4,9 @@ export interface Setting {
   id: string;
   description: string;
   fastSearchMaxRequestsPerHour: number;
+  mobileFileKey: string;
+  mobilePreviewFileKey: string;
+  mobilePortraitFileKey: string;
   creationDate: Date;
   updatingDate: Date;
 }
@@ -25,6 +28,18 @@ export const Setting = new EntitySchema<Setting>({
     fastSearchMaxRequestsPerHour: {
       type: 'integer',
       name: 'fast_search_max_requests_per_hour',
+    },
+    mobileFileKey: {
+      type: 'varchar',
+      name: 'mobile_file_key',
+    },
+    mobilePreviewFileKey: {
+      type: 'varchar',
+      name: 'mobile_preview_file_key',
+    },
+    mobilePortraitFileKey: {
+      type: 'varchar',
+      name: 'mobile_portrait_file_key',
     },
     creationDate: {
       type: 'timestamptz',

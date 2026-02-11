@@ -1,8 +1,5 @@
-import { TCreateDeceasedSocialMediaLink } from 'src/modules/deceased-highlights/common/types';
-import { EDeceasedSocialMediaLinkPlatform } from 'src/modules/deceased-highlights/common/enums';
+/* eslint-disable @typescript-eslint/no-empty-object-type */
+import { CreatePayload } from 'src/common/types';
+import { DeceasedSocialMediaLink } from 'src/modules/deceased-highlights/entities';
 
-export interface IDeceasedSocialMediaLink {
-  deceased: TCreateDeceasedSocialMediaLink;
-  platform: EDeceasedSocialMediaLinkPlatform;
-  url: string;
-}
+export interface IDeceasedSocialMediaLink extends CreatePayload<DeceasedSocialMediaLink> {}

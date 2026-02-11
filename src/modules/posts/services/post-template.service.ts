@@ -12,7 +12,7 @@ import {
 } from 'src/modules/posts/common/types';
 import { findManyTyped } from 'src/common/utils/find-many-typed';
 import { findOneOrFailTyped, findOneTyped } from 'src/common/utils/find-one-typed';
-import { EFileType, EFolderPath } from 'src/libs/file-management/common/enums';
+import { EFileType } from 'src/libs/file-management/common/enums';
 import { PostMediaContentService } from 'src/modules/posts/services';
 import { CreatePostTemplateDto } from 'src/modules/posts/common/dto';
 import { EPostMediaContentType } from 'src/modules/posts/common/enums';
@@ -46,14 +46,14 @@ export class PostTemplateService {
   }
 
   public async updatePostTemplate(id: string, postId: string, user: ITokenUserPayload): Promise<void> {
-    const postTemplate = await findOneTyped<TUpdatePostTemplate>(this.postMediaContentRepository, {
+    const postMediaContent = await findOneTyped<TUpdatePostTemplate>(this.postMediaContentRepository, {
       select: UpdatePostTemplateQuery.select,
       where: { id: postId, contentType: EPostMediaContentType.POST_TEMPLATE },
       relations: UpdatePostTemplateQuery.relations,
     });
 
-    if (postTemplate) {
-      await this.fileManagementService.deleteFileAndObject(postTemplate.file);
+    if (postMediaContent) {
+      await this.fileManagementService.deleteFileAndObject(postMediaContent.file);
     }
 
     await this.applyPostTemplate(id, postId, user);
@@ -66,12 +66,7 @@ export class PostTemplateService {
       relations: ApplyPostTemplateQuery.relations,
     });
 
-    const file = await this.fileManagementService.copyFile(
-      template.file.id,
-      user,
-      EFolderPath.POST_PHOTOS,
-      EFileType.POST_PHOTOS,
-    );
+    const file = await this.fileManagementService.copyFile(template.file.id, user, EFileType.POST_PHOTOS);
     await this.postMediaContentService.createPostTemplateMediaContent(postId, file.id);
   }
 
