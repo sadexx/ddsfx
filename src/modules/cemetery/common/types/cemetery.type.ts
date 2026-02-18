@@ -1,10 +1,11 @@
-import { Deceased } from 'src/modules/deceased/entities';
+import { FindOptionsSelect } from 'typeorm';
+import { QueryResultType } from 'src/common/types';
 import { Cemetery } from 'src/modules/cemetery/entities';
 
-/**
- ** Types
- */
-
-export type TGetCemeteries = Pick<Cemetery, 'id' | 'name'>;
-
-export type TConstructGraveLocationDtoDeceased = Pick<Deceased, 'id'>;
+export const GetCemeteriesQuery = {
+  select: {
+    id: true,
+    name: true,
+  } as const satisfies FindOptionsSelect<Cemetery>,
+};
+export type TGetCemeteries = QueryResultType<Cemetery, typeof GetCemeteriesQuery.select>;

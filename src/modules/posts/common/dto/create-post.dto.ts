@@ -5,14 +5,12 @@ import { CreatePostMediaContentDto } from 'src/modules/posts/common/dto/create-p
 
 export class CreatePostDto {
   replyToPostId?: string;
-  templateId?: string;
   text?: string;
   mediaContent?: CreatePostMediaContentDto[];
 
   static readonly schema = Type.Object(
     {
       replyToPostId: Type.Optional(UUIDPattern),
-      templateId: Type.Optional(UUIDPattern),
       text: Type.Optional(ExtendedStringPattern),
       mediaContent: Type.Optional(
         Type.Array(CreatePostMediaContentDto.schema, { minItems: 1, maxItems: FILE_CONFIG.MAX_FILES }),

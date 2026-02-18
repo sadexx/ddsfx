@@ -9,6 +9,7 @@ export const SettingsQuery = {
     mobileFileKey: true,
     mobilePreviewFileKey: true,
     mobilePortraitFileKey: true,
+    firstPostFromFreyaId: true,
     creationDate: true,
     updatingDate: true,
   } as const satisfies FindOptionsSelect<Setting>,

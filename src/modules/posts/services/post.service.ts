@@ -19,7 +19,7 @@ import {
 import { findManyTyped } from 'src/common/utils/find-many-typed';
 import { GetAllPostsOutput } from 'src/modules/posts/common/outputs';
 import { findOneOrFailTyped } from 'src/common/utils/find-one-typed';
-import { PostMediaContentService, PostTemplateService, PostValidationService } from 'src/modules/posts/services';
+import { PostMediaContentService, PostValidationService } from 'src/modules/posts/services';
 
 @Injectable()
 export class PostService {
@@ -28,7 +28,6 @@ export class PostService {
     private readonly postsRepository: Repository<Post>,
     private readonly postMediaContentService: PostMediaContentService,
     private readonly postValidationService: PostValidationService,
-    private readonly postTemplateService: PostTemplateService,
     private readonly helperService: HelperService,
   ) {}
 
@@ -67,7 +66,14 @@ export class PostService {
     await this.postValidationService.ensureDeceasedExists(deceasedId);
 
     if (dto.mediaContent && dto.mediaContent.length > 0) {
-      await this.helperService.ensureFilesExist(dto.mediaContent);
+      const mediaContentFileIds: { id: string }[] = [];
+      for (const mediaContent of dto.mediaContent) {
+        if (mediaContent.id) {
+          mediaContentFileIds.push({ id: mediaContent.id });
+        }
+      }
+
+      await this.helperService.ensureFilesExist(mediaContentFileIds);
     }
 
     if (dto.replyToPostId) {
@@ -83,12 +89,8 @@ export class PostService {
 
     await this.postsRepository.save(post);
 
-    if (dto.templateId) {
-      await this.postTemplateService.applyPostTemplate(dto.templateId, post.id, user);
-    }
-
     if (dto.mediaContent && dto.mediaContent.length > 0) {
-      await this.postMediaContentService.createPostMediaContents(post.id, dto.mediaContent);
+      await this.postMediaContentService.createPostMediaContents(post.id, dto.mediaContent, user);
     }
 
     return { message: 'Post created successfully' };
@@ -102,10 +104,6 @@ export class PostService {
     });
 
     this.postValidationService.updatePostRestrictions(post, dto);
-
-    if (dto.templateId) {
-      await this.postTemplateService.updatePostTemplate(dto.templateId, post.id, user);
-    }
 
     await this.postsRepository.update(post.id, { text: dto.text });
 

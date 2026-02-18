@@ -9,7 +9,7 @@ import { NUMBER_OF_MINUTES_IN_DAY, NUMBER_OF_SECONDS_IN_MINUTE } from 'src/commo
 import { MessageOutput } from 'src/common/outputs';
 import { MobileSettingsQuery, SettingsQuery, TMobileSettings, TSettings } from 'src/modules/settings/common/types';
 import { findManyTyped } from 'src/common/utils/find-many-typed';
-import { StrictOmit } from 'src/common/types';
+import { settingsSeedData } from 'src/modules/settings/common/seed-data';
 
 @Injectable()
 export class SettingsService {
@@ -24,18 +24,10 @@ export class SettingsService {
   ) {}
 
   public async seedSettingsToDatabase(): Promise<void> {
-    const ratesCount = await this.settingsRepository.count();
+    const settingsCount = await this.settingsRepository.count();
 
-    if (ratesCount === 0) {
-      const seedData: StrictOmit<Setting, 'id' | 'creationDate' | 'updatingDate'> = {
-        description: 'Default description',
-        fastSearchMaxRequestsPerHour: 100,
-        mobileFileKey: 'AWS CloudFront URL',
-        mobilePreviewFileKey: 'AWS CloudFront URL',
-        mobilePortraitFileKey: 'AWS CloudFront URL',
-      };
-
-      const setting = this.settingsRepository.create(seedData);
+    if (settingsCount === 0) {
+      const setting = this.settingsRepository.create(settingsSeedData);
 
       await this.settingsRepository.save(setting);
       this.lokiLogger.log(`Seeded Settings table, added record`);

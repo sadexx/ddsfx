@@ -22,7 +22,7 @@ import { PaginationCursorQueryDto, UUIDParamDto } from 'src/common/dto';
 import { MessageOutput } from 'src/common/outputs';
 import { GetAllPostsOutput } from 'src/modules/posts/common/outputs';
 import { TGetPost } from 'src/modules/posts/common/types';
-import { NotEmptyBodyPipe } from 'src/common/pipes';
+import { NotEmptyBodyPipe, ValidateAndTransformPipe } from 'src/common/pipes';
 
 @Controller('posts')
 export class PostController {
@@ -49,7 +49,7 @@ export class PostController {
   async create(
     @Param() param: UUIDParamDto,
     @CurrentUser() user: ITokenUserPayload,
-    @Body() dto: CreatePostDto,
+    @Body(ValidateAndTransformPipe) dto: CreatePostDto,
   ): Promise<MessageOutput> {
     return await this.postService.createPost(param.id, user, dto);
   }

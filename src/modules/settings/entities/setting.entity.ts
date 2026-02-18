@@ -7,6 +7,7 @@ export interface Setting {
   mobileFileKey: string;
   mobilePreviewFileKey: string;
   mobilePortraitFileKey: string;
+  firstPostFromFreyaId: string;
   creationDate: Date;
   updatingDate: Date;
 }
@@ -40,6 +41,10 @@ export const Setting = new EntitySchema<Setting>({
     mobilePortraitFileKey: {
       type: 'varchar',
       name: 'mobile_portrait_file_key',
+    },
+    firstPostFromFreyaId: {
+      type: 'uuid',
+      name: 'first_post_from_freya_id',
     },
     creationDate: {
       type: 'timestamptz',

@@ -8,6 +8,7 @@ import { EBucketName, EContentType, EFileExtension, EFileType } from 'src/libs/f
 import { File } from 'src/libs/file-management/entities/file.entity';
 import { EDeceasedMediaContentType, EDeceasedStatus } from 'src/modules/deceased/common/enums';
 import { Address } from 'src/modules/address/entities';
+import { FreyaPostService } from 'src/modules/freya-posts/services';
 
 @Injectable()
 export class DeceasedCreationService {
@@ -24,7 +25,10 @@ export class DeceasedCreationService {
     extension: EFileExtension.JPEG,
   };
 
-  constructor(private readonly dataSource: DataSource) {}
+  constructor(
+    private readonly dataSource: DataSource,
+    private readonly freyaPostService: FreyaPostService,
+  ) {}
 
   public async createDeceasedFromMemory(deceasedDto: ITransformedMemoryDataset): Promise<Deceased> {
     return await this.dataSource.transaction(async (manager) => {
@@ -53,14 +57,18 @@ export class DeceasedCreationService {
       );
     }
 
+    let generalPhotoFileId: string | undefined;
+
     if (deceasedDto.filePreviewFileKey) {
-      await this.createDeceasedMediaContentFromIndex(
+      generalPhotoFileId = await this.createDeceasedMediaContentFromIndex(
         manager,
         deceasedDto.filePreviewFileKey,
         savedDeceased,
         EDeceasedMediaContentType.DECEASED_GENERAL_PHOTO,
       );
     }
+
+    await this.freyaPostService.createFirstPostFromFreya(manager, savedDeceased, generalPhotoFileId);
 
     if (deceasedDto.additionalFilePreviewFileKey) {
       await this.createDeceasedMediaContentFromIndex(
@@ -119,7 +127,7 @@ export class DeceasedCreationService {
     fileKey: string,
     deceased: Deceased,
     contentType: EDeceasedMediaContentType,
-  ): Promise<void> {
+  ): Promise<string> {
     const file = await manager.getRepository(File).save({
       ...this.DEFAULT_MEMORY_FILE_CONFIG,
       uploadedByUserId: deceased.id,
@@ -134,5 +142,7 @@ export class DeceasedCreationService {
       file: file,
       deceased: deceased,
     });
+
+    return file.id;
   }
 }

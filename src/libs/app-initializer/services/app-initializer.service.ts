@@ -11,6 +11,7 @@ import { LokiLogger } from 'src/libs/logger';
 import { SettingsService } from 'src/modules/settings/services';
 import { RoleService } from 'src/modules/users/services';
 import { CemeteryService } from 'src/modules/cemetery/services';
+import { FreyaPostService } from 'src/modules/freya-posts/services';
 
 @Injectable()
 export class AppInitializerService
@@ -23,6 +24,7 @@ export class AppInitializerService
     private readonly settingsService: SettingsService,
     private readonly roleService: RoleService,
     private readonly cemeteryService: CemeteryService,
+    private readonly freyaPostService: FreyaPostService,
   ) {}
 
   public async onModuleInit(): Promise<void> {
@@ -53,6 +55,7 @@ export class AppInitializerService
       await this.settingsService.seedSettingsToDatabase();
       await this.roleService.seedRoles();
       await this.cemeteryService.seedCemeteries();
+      await this.freyaPostService.seedFreyaUser();
     }
   }
 }

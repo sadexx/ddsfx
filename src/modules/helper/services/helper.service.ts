@@ -14,8 +14,8 @@ export class HelperService {
     private readonly referenceCatalogRepository: Repository<ReferenceCatalog>,
   ) {}
 
-  public async ensureFilesExist(mediaContent: { id: string }[]): Promise<void> {
-    const fileIds = mediaContent.map((file) => file.id);
+  public async ensureFilesExist(uploadedFiles: { id: string }[]): Promise<void> {
+    const fileIds = uploadedFiles.map((file) => file.id);
     const cutOffDate = new Date(Date.now() - FILE_CONFIG.TIME_LIMIT);
     const existingFilesCount = await this.fileRepository.count({
       where: {

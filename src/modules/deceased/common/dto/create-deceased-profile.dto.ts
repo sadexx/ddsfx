@@ -2,7 +2,6 @@ import { BadRequestException } from '@nestjs/common';
 import { Type } from '@sinclair/typebox';
 import { DayPattern, MonthPattern, StandardStringPattern, UUIDPattern, YearPattern } from 'src/common/validators';
 import { CreateGraveLocationDto } from 'src/modules/cemetery/common/dto';
-import { CreateDeceasedSubscriptionDto } from 'src/modules/deceased/common/dto';
 import { validateBirthBeforeDeath, validateDateConfirmationRequirement } from 'src/modules/deceased/common/validators';
 import { EUserGender } from 'src/modules/users/common/enum';
 
@@ -20,7 +19,6 @@ export class CreateDeceasedProfileDto {
   cemeteryId?: string;
   confirmInvalidDate?: boolean;
   graveLocation?: CreateGraveLocationDto;
-  deceasedSubscription: CreateDeceasedSubscriptionDto;
 
   static readonly schema = Type.Object(
     {
@@ -37,7 +35,6 @@ export class CreateDeceasedProfileDto {
       cemeteryId: Type.Optional(UUIDPattern),
       confirmInvalidDate: Type.Optional(Type.Boolean()),
       graveLocation: Type.Optional(CreateGraveLocationDto.schema),
-      deceasedSubscription: CreateDeceasedSubscriptionDto.schema,
     },
     { additionalProperties: false },
   );

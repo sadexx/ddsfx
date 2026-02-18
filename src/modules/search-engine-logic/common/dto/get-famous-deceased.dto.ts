@@ -2,7 +2,7 @@ import { Static, Type } from '@sinclair/typebox';
 import { StandardStringPattern } from 'src/common/validators';
 
 export const GetFamousDeceasedDto = Type.Object(
-  { cemeteryName: StandardStringPattern },
+  { cemeteryName: Type.Optional(StandardStringPattern) },
   { additionalProperties: false },
 );
 

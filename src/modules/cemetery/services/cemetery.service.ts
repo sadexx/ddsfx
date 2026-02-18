@@ -1,30 +1,27 @@
 import { Injectable } from '@nestjs/common';
-import { Cemetery, GraveLocation } from 'src/modules/cemetery/entities';
-import { EntityManager, Repository } from 'typeorm';
-import { CreateGraveLocationDto, GetCemeteriesDto, UpdateGraveLocationDto } from 'src/modules/cemetery/common/dto';
-import { IGraveLocation } from 'src/modules/cemetery/common/interfaces';
-import {
-  TCreateDeceasedProfileCemetery,
-  TUpdateDeceasedProfile,
-  TUpdateDeceasedProfileCemetery,
-} from 'src/modules/deceased/common/types';
-import { StrictOmit } from 'src/common/types';
-import { TConstructGraveLocationDtoDeceased, TGetCemeteries } from 'src/modules/cemetery/common/types';
 import { InjectRepository } from '@nestjs/typeorm';
-import { CemeteryQueryOptionsService } from 'src/modules/cemetery/services';
-import { PaginationOutput } from 'src/common/outputs';
-import { findManyAndCountQueryBuilderTyped } from 'src/common/utils/find-many-typed';
-import { cemeteriesSeedData } from 'src/modules/cemetery/common/seed-data';
+import { ILike, Repository } from 'typeorm';
 import { LokiLogger } from 'src/libs/logger';
-import { Deceased } from 'src/modules/deceased/entities';
+import { CreateCemeteryDto, GetCemeteriesDto } from 'src/modules/cemetery/common/dto';
+import { cemeteriesSeedData } from 'src/modules/cemetery/common/seed-data';
+import { GetCemeteriesQuery, TGetCemeteries } from 'src/modules/cemetery/common/types';
+import { Cemetery } from 'src/modules/cemetery/entities';
+import { RedisService } from 'src/libs/redis/services';
+import { findManyTyped } from 'src/common/utils/find-many-typed';
+import { ESortOrder } from 'src/common/enums';
+import { NUMBER_OF_SECONDS_IN_MINUTE, NUMBER_OF_MINUTES_IN_FIVE_MINUTES } from 'src/common/constants';
+import { EntityIdOutput } from 'src/common/outputs';
+import { ICemetery } from 'src/modules/cemetery/common/interfaces';
 
 @Injectable()
 export class CemeteryService {
   private readonly lokiLogger = new LokiLogger(CemeteryService.name);
+  private readonly DROPDOWN_RESULT_LIMIT: number = 20;
+  private readonly DROPDOWN_CACHE_TTL: number = NUMBER_OF_SECONDS_IN_MINUTE * NUMBER_OF_MINUTES_IN_FIVE_MINUTES;
   constructor(
     @InjectRepository(Cemetery)
     private readonly cemeteryRepository: Repository<Cemetery>,
-    private readonly cemeteryQueryOptionsService: CemeteryQueryOptionsService,
+    private readonly redisService: RedisService,
   ) {}
 
   public async seedCemeteries(): Promise<void> {
@@ -36,83 +33,46 @@ export class CemeteryService {
     }
   }
 
-  public async getCemeteries(dto: GetCemeteriesDto): Promise<PaginationOutput<TGetCemeteries>> {
-    const queryBuilder = this.cemeteryRepository.createQueryBuilder('cemetery');
-    this.cemeteryQueryOptionsService.getCemeteriesOptions(queryBuilder, dto);
-    const [cemeteries, count] = await findManyAndCountQueryBuilderTyped<TGetCemeteries[]>(queryBuilder);
+  public async getCemeteries(dto: GetCemeteriesDto): Promise<TGetCemeteries[]> {
+    const cacheKey = this.buildCacheKey(dto.searchField);
+    const cacheData = await this.redisService.getJson<TGetCemeteries[]>(cacheKey);
 
-    return { data: cemeteries, total: count, limit: dto.limit, offset: dto.offset };
-  }
-
-  public async createOrUpdateGraveLocation(
-    manager: EntityManager,
-    deceased: TUpdateDeceasedProfile,
-    cemetery: TUpdateDeceasedProfileCemetery | null,
-    dto?: UpdateGraveLocationDto,
-  ): Promise<void> {
-    if (!deceased.graveLocation && cemetery) {
-      await this.constructAndCreateGraveLocation(manager, cemetery, deceased, dto);
-    } else if (deceased.graveLocation && (dto || cemetery)) {
-      await this.updateGraveLocation(manager, deceased.graveLocation, cemetery, dto);
+    if (cacheData) {
+      return cacheData;
     }
+
+    const cemeteries = await findManyTyped<TGetCemeteries[]>(this.cemeteryRepository, {
+      select: GetCemeteriesQuery.select,
+      where: { isVerify: true, name: ILike(`%${dto.searchField}%`) },
+      order: { creationDate: ESortOrder.DESC },
+      take: this.DROPDOWN_RESULT_LIMIT,
+    });
+
+    if (cemeteries.length !== 0) {
+      await this.redisService.setJson(cacheKey, cemeteries, this.DROPDOWN_CACHE_TTL);
+    }
+
+    return cemeteries;
   }
 
-  public async constructAndCreateGraveLocation(
-    manager: EntityManager,
-    cemetery: TCreateDeceasedProfileCemetery,
-    deceased: TConstructGraveLocationDtoDeceased,
-    dto?: CreateGraveLocationDto | UpdateGraveLocationDto,
-  ): Promise<GraveLocation> {
-    const graveLocationDto = this.constructCreateGraveLocationDto(cemetery, deceased, dto);
+  public async createCemetery(dto: CreateCemeteryDto): Promise<EntityIdOutput> {
+    const cemeteryDto = this.constructReferenceCatalogDto(dto);
 
-    return await this.createGraveLocation(manager, graveLocationDto);
+    const newCemetery = this.cemeteryRepository.create(cemeteryDto);
+    const savedCemetery = await this.cemeteryRepository.save(newCemetery);
+
+    return { id: savedCemetery.id };
   }
 
-  private async createGraveLocation(manager: EntityManager, dto: IGraveLocation): Promise<GraveLocation> {
-    const graveLocationRepository = manager.getRepository(GraveLocation);
-    const newGraveLocation = graveLocationRepository.create(dto);
-
-    return await graveLocationRepository.save(newGraveLocation);
-  }
-
-  private async updateGraveLocation(
-    manager: EntityManager,
-    existingGraveLocation: NonNullable<TUpdateDeceasedProfile['graveLocation']>,
-    cemetery: TUpdateDeceasedProfileCemetery | null,
-    dto?: UpdateGraveLocationDto,
-  ): Promise<void> {
-    const graveLocationDto = this.constructUpdateGraveLocationDto(existingGraveLocation, cemetery, dto);
-
-    await manager.getRepository(GraveLocation).update({ id: existingGraveLocation.id }, graveLocationDto);
-  }
-
-  private constructCreateGraveLocationDto(
-    cemetery: TCreateDeceasedProfileCemetery,
-    deceased: TConstructGraveLocationDtoDeceased,
-    dto?: CreateGraveLocationDto | UpdateGraveLocationDto,
-  ): IGraveLocation {
+  private constructReferenceCatalogDto(dto: CreateCemeteryDto): ICemetery {
     return {
-      cemetery: cemetery as Cemetery,
-      deceased: deceased as Deceased,
-      latitude: dto?.latitude ?? null,
-      longitude: dto?.longitude ?? null,
-      altitude: dto?.altitude ?? null,
+      name: dto.name,
+      isVerify: false,
+      address: null,
     };
   }
 
-  private constructUpdateGraveLocationDto(
-    existingGraveLocation: NonNullable<TUpdateDeceasedProfile['graveLocation']>,
-    cemetery: TUpdateDeceasedProfileCemetery | null,
-    dto?: UpdateGraveLocationDto,
-  ): StrictOmit<IGraveLocation, 'deceased'> {
-    const cemeteryChanged = cemetery && cemetery.id !== existingGraveLocation.cemetery.id;
-
-    return {
-      cemetery: (cemetery ?? existingGraveLocation.cemetery) as Cemetery,
-      latitude: dto?.latitude !== undefined ? dto.latitude : cemeteryChanged ? null : existingGraveLocation.latitude,
-      longitude:
-        dto?.longitude !== undefined ? dto.longitude : cemeteryChanged ? null : existingGraveLocation.longitude,
-      altitude: dto?.altitude !== undefined ? dto.altitude : cemeteryChanged ? null : existingGraveLocation.altitude,
-    };
+  private buildCacheKey(searchField: string): string {
+    return `cemeteries:${searchField.toLowerCase()}`;
   }
 }

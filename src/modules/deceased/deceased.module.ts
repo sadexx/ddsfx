@@ -18,6 +18,7 @@ import { User } from 'src/modules/users/entities';
 import { Cemetery } from 'src/modules/cemetery/entities';
 import { Deceased, DeceasedMediaContent, DeceasedSubscription } from 'src/modules/deceased/entities';
 import { HelperModule } from 'src/modules/helper/helper.module';
+import { FreyaPostsModule } from 'src/modules/freya-posts/freya-posts.module';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { HelperModule } from 'src/modules/helper/helper.module';
     ExternalSyncModule,
     CemeteryModule,
     HelperModule,
+    FreyaPostsModule,
   ],
   controllers: [DeceasedController, DeceasedSubscriptionsController, DeceasedMediaContentController],
   providers: [

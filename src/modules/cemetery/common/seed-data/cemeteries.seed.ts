@@ -4,6 +4,7 @@ import { Address } from 'src/modules/address/entities';
 export const cemeteriesSeedData: ICemetery[] = [
   {
     name: 'Лісове кладовище',
+    isVerify: true,
     address: {
       latitude: 50.499444,
       longitude: 30.633611,

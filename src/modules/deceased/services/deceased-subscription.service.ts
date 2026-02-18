@@ -1,6 +1,6 @@
 import { ForbiddenException, Injectable } from '@nestjs/common';
 import { Deceased, DeceasedSubscription } from 'src/modules/deceased/entities';
-import { DataSource, EntityManager, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
 import { CreateDeceasedSubscriptionDto } from 'src/modules/deceased/common/dto';
 import { IDeceasedSubscription } from 'src/modules/deceased/common/interfaces';
 import {
@@ -34,7 +34,6 @@ export class DeceasedSubscriptionService {
     private readonly deceasedQueryOptionsService: DeceasedQueryOptionsService,
     private readonly deceasedValidationService: DeceasedValidationService,
     private readonly openSearchSyncService: OpenSearchSyncService,
-    private readonly dataSource: DataSource,
   ) {}
 
   public async getMyDeceasedSubscriptions(user: ITokenUserPayload): Promise<TGetMyDeceasedSubscriptions[]> {
@@ -80,22 +79,19 @@ export class DeceasedSubscriptionService {
 
     await this.deceasedValidationService.validateSubscribeDeceasedProfile(currentUser, param.id);
 
-    await this.dataSource.transaction(async (manager) => {
-      await this.constructAndCreateDeceasedSubscription(manager, dto, currentUser, deceased);
-    });
+    await this.constructAndCreateDeceasedSubscription(dto, currentUser, deceased);
 
     await this.openSearchSyncService.updateDeceasedIndex(deceased);
   }
 
-  public async constructAndCreateDeceasedSubscription(
-    manager: EntityManager,
+  private async constructAndCreateDeceasedSubscription(
     dto: CreateDeceasedSubscriptionDto,
     user: TConstructAndCreateDeceasedSubscriptionUser,
     deceased: TConstructAndCreateDeceasedSubscriptionDeceased,
   ): Promise<DeceasedSubscription> {
     const deceasedSubscriptionDto = this.constructDeceasedSubscriptionDto(dto, user, deceased);
 
-    return await this.createDeceasedSubscription(manager, deceasedSubscriptionDto);
+    return await this.createDeceasedSubscription(deceasedSubscriptionDto);
   }
 
   public async unsubscribeDeceasedProfile(param: UUIDParamDto, user: ITokenUserPayload): Promise<void> {
@@ -143,14 +139,10 @@ export class DeceasedSubscriptionService {
     return deceased;
   }
 
-  private async createDeceasedSubscription(
-    manager: EntityManager,
-    dto: IDeceasedSubscription,
-  ): Promise<DeceasedSubscription> {
-    const deceasedSubscriptionRepository = manager.getRepository(DeceasedSubscription);
-    const newDeceasedSubscription = deceasedSubscriptionRepository.create(dto);
+  private async createDeceasedSubscription(dto: IDeceasedSubscription): Promise<DeceasedSubscription> {
+    const newDeceasedSubscription = this.deceasedSubscriptionRepository.create(dto);
 
-    return await deceasedSubscriptionRepository.save(newDeceasedSubscription);
+    return await this.deceasedSubscriptionRepository.save(newDeceasedSubscription);
   }
 
   private constructDeceasedSubscriptionDto(

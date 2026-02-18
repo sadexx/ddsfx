@@ -1,5 +1,5 @@
 import { Type } from '@sinclair/typebox';
-import { StandardStringPattern } from 'src/common/validators';
+import { StandardStringPattern, UUIDPattern } from 'src/common/validators';
 
 export class UpdateSettingDto {
   description?: string;
@@ -7,6 +7,7 @@ export class UpdateSettingDto {
   mobileFileKey?: string;
   mobilePreviewFileKey?: string;
   mobilePortraitFileKey?: string;
+  firstPostFromFreyaId?: string;
 
   static readonly schema = Type.Object(
     {
@@ -15,6 +16,7 @@ export class UpdateSettingDto {
       mobileFileKey: Type.Optional(StandardStringPattern),
       mobilePreviewFileKey: Type.Optional(StandardStringPattern),
       mobilePortraitFileKey: Type.Optional(StandardStringPattern),
+      firstPostFromFreyaId: Type.Optional(UUIDPattern),
     },
     { additionalProperties: false },
   );

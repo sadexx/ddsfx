@@ -7,6 +7,7 @@ export interface Cemetery {
   address: Address | null;
   graveLocations: GraveLocation[];
   name: string;
+  isVerify: boolean;
   creationDate: Date;
   updatingDate: Date;
 }
@@ -25,6 +26,11 @@ export const Cemetery = new EntitySchema<Cemetery>({
     name: {
       type: 'varchar',
       name: 'name',
+    },
+    isVerify: {
+      type: 'boolean',
+      name: 'is_verify',
+      default: false,
     },
     creationDate: {
       type: 'timestamptz',

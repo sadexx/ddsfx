@@ -9,9 +9,10 @@ import {
   MemorySyncService,
   OpenSearchSyncService,
 } from 'src/modules/external-sync/services';
+import { FreyaPostsModule } from 'src/modules/freya-posts/freya-posts.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Deceased]), HelperModule],
+  imports: [TypeOrmModule.forFeature([Deceased]), HelperModule, FreyaPostsModule],
   controllers: [ExternalSyncController],
   providers: [DeceasedCreationService, ExternalSyncService, MemorySyncService, OpenSearchSyncService],
   exports: [ExternalSyncService, OpenSearchSyncService],
